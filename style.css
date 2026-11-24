@@ -67,6 +67,24 @@ input[type=search] { width: 100%; }
 .up { color: var(--good); } .down { color: var(--bad); }
 .skill-chip { font: 700 15px var(--display); padding: 1px 7px; color: #fff; }
 
+.card .curve { font-size: 11px; color: var(--brass); }
+
+.duo-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0; border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+.duo-cols > div { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 16px; background: var(--panel); min-width: 0; }
+.duo-list { list-style: none; margin: 0; padding: 0; counter-reset: d; font-variant-numeric: tabular-nums; }
+.duo-list li { counter-increment: d; display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--rule); font-size: 14px; }
+.duo-list li::before { content: counter(d); font: 400 12px var(--mono); color: var(--muted); width: 18px; flex-shrink: 0; }
+.duo-list img, .duo-list .ph { width: 26px; height: 34px; object-fit: cover; object-position: top; border: 1px solid var(--rule); background: var(--panel-2); flex-shrink: 0; }
+.duo-list .ph { display: inline-flex; align-items: center; justify-content: center; font: 700 14px var(--display); color: var(--muted); }
+.duo-list .nm { min-width: 0; line-height: 1.25; overflow-wrap: anywhere; }
+.duo-list .val { margin-left: auto; text-align: right; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+.duo-list .val small { display: block; color: var(--muted); font-size: 11px; }
+.lb td { padding: 8px 10px; }
+.lb .heroes-mini { display: flex; gap: 4px; }
+.lb .heroes-mini img, .lb .heroes-mini .ph { width: 26px; height: 34px; object-fit: cover; object-position: top; border: 1px solid var(--rule); background: var(--panel-2); }
+.lb .heroes-mini .ph { display: inline-flex; align-items: center; justify-content: center; font: 700 14px var(--display); color: var(--muted); }
+.lb .top3 td:first-child { color: var(--brass); font-weight: 600; }
+
 .tier { display: grid; grid-template-columns: 112px minmax(0, 1fr); border-bottom: 1px solid var(--rule); }
 .tier:first-child { border-top: 1px solid var(--rule); }
 .tier-label { display: flex; flex-direction: column; justify-content: center; padding: 14px; color: #fff; }

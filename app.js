@@ -4,13 +4,14 @@
   var API = "https://api.deadlock-api.com/v1/analytics/hero-stats";
   var TIER_COLOR = { S: "var(--t-s)", A: "var(--t-a)", B: "var(--t-b)", C: "var(--t-c)", D: "var(--t-d)", F: "var(--t-f)" };
 
+  // [hero, skill score /10, win-rate gain from first 10 games to 51-150 games]
   var SKILL = [
-    ["S", "Mastery", [["Sinclair", 10], ["Yamato", 9.8], ["Shiv", 9.8], ["Mina", 9.8]]],
-    ["A", "Very hard", [["Billy", 8.8], ["Holliday", 8.8], ["Ivy", 8.8], ["Lash", 8.8], ["Mo & Krill", 8.8], ["Rem", 8.8]]],
-    ["B", "Hard", [["Paradox", 7.8], ["Rat King", 7.8], ["Celeste", 7.0], ["Drifter", 6.8]]],
-    ["C", "Medium", [["Apollo", 6.0], ["Pocket", 6.0], ["Viscous", 6.0], ["Mirage", 5.2], ["Calico", 5.0], ["Deadman Danny", 5.0], ["Dynamo", 5.0], ["Kelvin", 5.0], ["Venator", 5.0]]],
-    ["D", "Easy", [["Bebop", 4.7], ["The Doorman", 4.2], ["Silver", 4.2], ["Victor", 4.2], ["Vyper", 4.2], ["Graves", 3.4], ["Grey Talon", 3.4], ["Lady Geist", 3.4], ["Warden", 3.4]]],
-    ["F", "Very easy", [["Vindicta", 2.9], ["Abrams", 2.4], ["Baba", 2.4], ["Nurse Harrow", 2.4], ["Solomon", 2.4], ["Violet", 2.4], ["Wraith", 2.4], ["Haze", 1.6], ["Infernus", 1.6], ["McGinnis", 1.6], ["Paige", 1.6], ["Seven", 1.6]]]
+    ["S", "Mastery", [["Shiv", 10.0, 5.8], ["Yamato", 10.0, 5.2], ["Sinclair", 10.0, 5.4], ["Mina", 10.0, 5.0], ["Rem", 9.6, 6.2]]],
+    ["A", "Very hard", [["Lash", 9.3, 5.5], ["Billy", 9.2, 5.2], ["Holliday", 8.9, 4.7], ["Mo & Krill", 8.8, 4.3], ["Ivy", 8.8, 4.4]]],
+    ["B", "Hard", [["Apollo", 7.4, 7.9], ["Paradox", 7.2, 2.8], ["Celeste", 7.1, 4.7], ["Drifter", 6.7, 4.1], ["Pocket", 6.5, 5.6]]],
+    ["C", "Medium", [["Vyper", 6.2, 10.4], ["Rat King", 6.2, 0.2], ["Viscous", 6.0, 4.3], ["Calico", 5.9, 6.5], ["Silver", 5.0, 6.3]]],
+    ["D", "Easy", [["Dynamo", 4.7, 3.5], ["Venator", 4.7, 3.6], ["Deadman Danny", 4.5, 3.2], ["Kelvin", 4.4, 2.9], ["Mirage", 4.4, 2.3], ["Victor", 4.3, 4.6], ["The Doorman", 4.3, 4.7], ["Baba", 3.9, 8.2], ["Bebop", 3.6, 2.9], ["Vindicta", 3.4, 6.8], ["Solomon", 3.1, 6.1]]],
+    ["F", "Very easy", [["Wraith", 2.8, 5.4], ["Warden", 2.8, 2.9], ["Lady Geist", 2.6, 2.2], ["Graves", 2.4, 1.8], ["Abrams", 2.3, 4.1], ["Grey Talon", 2.3, 1.5], ["Nurse Harrow", 2.2, 3.9], ["Violet", 2.0, 3.4], ["McGinnis", 1.5, 4.1], ["Haze", 1.0, 2.8], ["Infernus", 0.9, 2.6], ["Seven", 0.5, 1.7], ["Paige", 0.3, 1.0]]]
   ];
 
   var ROLES = [
@@ -59,7 +60,7 @@
   tiersEl.innerHTML = SKILL.map(function (t) {
     return '<div class="tier"><div class="tier-label" style="background:' + TIER_COLOR[t[0]] + '"><b>' + t[0] + '</b><span>' + t[1] + '</span></div><div class="cards">' +
       t[2].map(function (h) {
-        return '<div class="card"><div class="pic">' + portrait(h[0]) + '</div><div class="nm">' + esc(h[0]) + '</div><div class="sub">' + h[1].toFixed(1) + ' / 10</div></div>';
+        return '<div class="card" title="Players win ' + h[2].toFixed(1) + '% more often after 50+ games on ' + esc(h[0]) + ' than in their first 10"><div class="pic">' + portrait(h[0]) + '</div><div class="nm">' + esc(h[0]) + '</div><div class="sub">' + h[1].toFixed(1) + ' / 10</div><div class="sub curve">practice +' + h[2].toFixed(1) + '%</div></div>';
       }).join("") + '</div></div>';
   }).join("");
 
@@ -165,4 +166,97 @@
 
   useSnapshot("Loading live data…");
   load();
+
+  // Lane duos
+  var SYN_API = "https://api.deadlock-api.com/v1/analytics/hero-synergy-stats";
+  var dHero = document.getElementById("d-hero"), dRank = document.getElementById("d-rank"), duoStatus = document.getElementById("duo-status");
+  var pairs = [], synCache = {};
+  snap.heroes.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (h) {
+    var o = document.createElement("option"); o.value = h.id; o.textContent = h.name;
+    if (h.name === "Haze") o.selected = true;
+    dHero.appendChild(o);
+  });
+  function logit(p) { p = Math.min(0.99, Math.max(0.01, p)); return Math.log(p / (1 - p)); }
+  function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+  function buildPairs(raw) {
+    var tot = {};
+    raw.forEach(function (p) {
+      [p[0], p[1]].forEach(function (id) { var t = tot[id] || (tot[id] = { w: 0, m: 0 }); t.w += p[2]; t.m += p[3]; });
+    });
+    return raw.filter(function (p) { return heroById[p[0]] && heroById[p[1]] && p[3] >= 500; }).map(function (p) {
+      var wr = p[2] / p[3];
+      var exp = sigmoid(logit(tot[p[0]].w / tot[p[0]].m) + logit(tot[p[1]].w / tot[p[1]].m));
+      return { a: p[0], b: p[1], wr: 100 * wr, syn: 100 * (wr - exp), n: p[3] };
+    });
+  }
+  function duoItem(id, p, showBoth) {
+    var name = showBoth ? heroById[p.a].name + " + " + heroById[p.b].name : heroById[id].name;
+    var pics = showBoth ? portrait(heroById[p.a].name) + portrait(heroById[p.b].name) : portrait(heroById[id].name);
+    var sign = p.syn >= 0 ? "+" : "";
+    return '<li>' + pics + '<span class="nm">' + esc(name) + '</span><span class="val ' + (p.syn >= 0 ? "up" : "down") + '">' + sign + p.syn.toFixed(1) + '%<small>' + p.wr.toFixed(1) + '% · ' + p.n.toLocaleString("en-US") + ' games</small></span></li>';
+  }
+  function renderDuos() {
+    var id = +dHero.value;
+    var mine = pairs.filter(function (p) { return p.a === id || p.b === id; }).map(function (p) {
+      return { other: p.a === id ? p.b : p.a, p: p };
+    }).sort(function (x, y) { return y.p.syn - x.p.syn; });
+    var empty = '<li><span class="nm note">Not enough games yet.</span></li>';
+    document.getElementById("duo-best").innerHTML = mine.slice(0, 8).map(function (m) { return duoItem(m.other, m.p, false); }).join("") || empty;
+    document.getElementById("duo-worst").innerHTML = mine.slice(-5).reverse().map(function (m) { return duoItem(m.other, m.p, false); }).join("") || empty;
+    var top = pairs.filter(function (p) { return p.n >= 3000; }).sort(function (x, y) { return y.syn - x.syn; }).slice(0, 8);
+    document.getElementById("duo-top").innerHTML = top.map(function (p) { return duoItem(0, p, true); }).join("") || empty;
+  }
+  function useSnapPairs(reason) {
+    pairs = buildPairs(snap.pairs || []);
+    duoStatus.textContent = reason + " Showing the saved copy from " + snap.taken + " (all ranks).";
+    renderDuos();
+  }
+  function loadDuos() {
+    var rank = dRank.value, key = rank || "all";
+    var url = SYN_API + "?same_lane_filter=true&min_matches=500&min_unix_timestamp=" + (Math.floor(Date.now() / 1000) - 14 * 86400) + (rank ? "&min_average_badge=" + rank : "");
+    duoStatus.textContent = "Loading lane data…";
+    var p = synCache[key] || (synCache[key] = fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }));
+    p.then(function (raw) {
+      if (key !== (dRank.value || "all")) return;
+      pairs = buildPairs(raw.map(function (x) { return [x.hero_id1, x.hero_id2, x.wins, x.matches_played]; }));
+      var games = 0; pairs.forEach(function (x) { games += x.n; });
+      duoStatus.textContent = "Live · " + games.toLocaleString("en-US") + " lanes · last 14 days · " + dRank.options[dRank.selectedIndex].text.toLowerCase();
+      renderDuos();
+    }).catch(function () { delete synCache[key]; useSnapPairs("Live lane data couldn't be reached."); });
+  }
+  dHero.addEventListener("change", renderDuos);
+  dRank.addEventListener("change", loadDuos);
+  useSnapPairs("Loading live lane data…");
+  loadDuos();
+
+  // Top players
+  var LB_API = "https://api.deadlock-api.com/v1/leaderboard/";
+  var lbRegion = document.getElementById("lb-region"), lbSearch = document.getElementById("lb-search"), lbStatus = document.getElementById("lb-status"), lbBody = document.getElementById("lb-body");
+  var lbRows = [], lbCache = {};
+  function renderLb() {
+    var q = (lbSearch.value || "").toLowerCase();
+    lbBody.innerHTML = lbRows.filter(function (r) { return !q || String(r[1]).toLowerCase().indexOf(q) > -1; }).map(function (r) {
+      var heroes = (r[2] || []).filter(function (id) { return heroById[id]; }).map(function (id) { return portrait(heroById[id].name); }).join("");
+      return '<tr class="' + (r[0] <= 3 ? "top3" : "") + '"><td class="num">' + r[0] + '</td><td>' + esc(r[1] || "Unknown") + '</td><td><span class="heroes-mini">' + (heroes || '<span class="note">-</span>') + '</span></td></tr>';
+    }).join("") || '<tr><td colspan="3" class="note" style="padding:16px">No player matches that name.</td></tr>';
+  }
+  function loadLb() {
+    var region = lbRegion.value;
+    lbStatus.textContent = "Loading Valve's leaderboard…";
+    var p = lbCache[region] || (lbCache[region] = fetch(LB_API + region).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }));
+    p.then(function (d) {
+      if (region !== lbRegion.value) return;
+      lbRows = (d.entries || []).slice(0, 100).map(function (e) { return [e.rank, e.account_name, e.top_hero_ids]; });
+      lbStatus.textContent = "Live · " + lbRegion.options[lbRegion.selectedIndex].text + " · top 100";
+      renderLb();
+    }).catch(function () {
+      delete lbCache[region];
+      lbRows = (snap.leaderboard && snap.leaderboard[region]) || [];
+      lbStatus.textContent = "Live leaderboard couldn't be reached. Showing the saved copy from " + snap.taken + ".";
+      renderLb();
+    });
+  }
+  lbRegion.addEventListener("change", loadLb);
+  lbSearch.addEventListener("input", renderLb);
+  loadLb();
 })();

@@ -23,6 +23,8 @@
     <p class="lede">Who's winning right now, how hard each hero is to learn, and what job they do on the team. All 44 heroes.</p>
     <nav class="tabs" aria-label="Sections">
       <a href="#meta">Meta tracker</a>
+      <a href="#duos">Lane duos</a>
+      <a href="#players">Top players</a>
       <a href="#skill">Skill tiers</a>
       <a href="#roles">Roles</a>
       <a href="#method">How it's made</a>
@@ -76,6 +78,68 @@
     <p class="fine">Meta grade comes from win rate: S 55%+, A 52–55%, B 49.5–52%, C 47–49.5%, D under 47%. Pick rate is the share of matches a hero appears in. Data: <a href="https://deadlock-api.com">deadlock-api.com</a>.</p>
   </section>
 
+  <section id="duos" class="wrap block">
+    <div class="block-head">
+      <h2>Lane duos</h2>
+      <p class="note" id="duo-status">Loading lane data…</p>
+    </div>
+    <div class="controls">
+      <label>Your hero
+        <select id="d-hero"></select>
+      </label>
+      <label>Rank
+        <select id="d-rank">
+          <option value="">All ranks</option>
+          <option value="71">Archon and up</option>
+          <option value="81">Oracle and up</option>
+        </select>
+      </label>
+    </div>
+    <div class="duo-cols">
+      <div>
+        <h3>Best partners</h3>
+        <ol class="duo-list" id="duo-best"></ol>
+      </div>
+      <div>
+        <h3>Worst partners</h3>
+        <ol class="duo-list" id="duo-worst"></ol>
+      </div>
+      <div>
+        <h3>Strongest duos overall</h3>
+        <ol class="duo-list" id="duo-top"></ol>
+      </div>
+    </div>
+    <p class="fine">Only games where both heroes shared a lane, last 14 days. "Synergy" is how much more the pair wins than their solo win rates predict, so two strong heroes don't score high just for being strong. Pairs with fewer than 500 games are left out.</p>
+  </section>
+
+  <section id="players" class="wrap block">
+    <div class="block-head">
+      <h2>Top players</h2>
+      <p class="note" id="lb-status">Loading Valve's leaderboard…</p>
+    </div>
+    <div class="controls">
+      <label>Region
+        <select id="lb-region">
+          <option value="Europe">Europe</option>
+          <option value="NAmerica">North America</option>
+          <option value="SAmerica">South America</option>
+          <option value="Asia">Asia</option>
+          <option value="Oceania">Oceania</option>
+        </select>
+      </label>
+      <label class="grow">Find a player
+        <input id="lb-search" type="search" placeholder="Player name" autocomplete="off">
+      </label>
+    </div>
+    <div class="table-scroll">
+      <table class="ledger lb">
+        <thead><tr><th class="num">Rank</th><th>Player</th><th>Most played</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
+    <p class="fine">Valve's official ranked leaderboard, top 100 per region. Valve refreshes it once an hour.</p>
+  </section>
+
   <section id="skill" class="wrap block">
     <div class="block-head">
       <h2>Skill tiers</h2>
@@ -101,7 +165,7 @@
       </div>
       <div>
         <h3>Skill tiers</h3>
-        <p>60% Valve's in-game complexity rating (1–4), 40% the <a href="https://deadlock-boosting.com/blog/deadlock-characters">deadlock-boosting</a> difficulty guide, plus 1 point for heroes that big sites keep calling high-skill-ceiling, such as Yamato, Shiv and Ivy.</p>
+        <p>60% Valve's in-game complexity rating (1–4), 40% the <a href="https://deadlock-boosting.com/blog/deadlock-characters">deadlock-boosting</a> difficulty guide, plus 1 point for heroes that big sites keep calling high-skill-ceiling, such as Yamato, Shiv and Ivy. Then real matches adjust it by up to 2 points: heroes whose players win far more after 50 games than in their first 10 (like Vyper and Baba) move up, heroes you're good with straight away (like Paige and Seven) move down.</p>
       </div>
       <div>
         <h3>Roles</h3>
