@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deadlocked Stats: meta, counters, duos and tiers</title>
+<meta name="description" content="Live Deadlock meta tracker with hero win rates and pick rates, plus a tier list of all 44 heroes ranked by how much skill they take, and every hero's team role.">
+<meta property="og:title" content="Deadlocked">
+<meta property="og:description" content="Live win and pick rates, a skill tier list for all 44 heroes, and every hero's team role.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://deadlocked-official.github.io/deadlocked/stats.html">
+<link rel="canonical" href="https://deadlocked-official.github.io/deadlocked/stats.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sitebar"><div class="wrap">
+  <a class="brand" href="./">Deadlocked</a>
+  <nav aria-label="Site"><a href="./">Home</a><a href="stats.html" aria-current="page">Stats</a><a href="builds.html">Builds</a><a href="./#drills">Drills</a></nav>
+</div></div>
+<header class="masthead compact">
+  <div class="wrap">
+    <p class="kicker">Stats · Updated <span id="stamp">Nov 2026</span></p>
+    <h1>Hero stats</h1>
+    <p class="lede">Who's winning right now, who counters who, the best lane partners, the top players, and how hard each hero is to learn.</p>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#meta">Meta tracker</a>
+      <a href="#lookup">Counters and items</a>
+      <a href="#duos">Lane duos</a>
+      <a href="#players">Top players</a>
+      <a href="#skill">Skill tiers</a>
+      <a href="#roles">Roles</a>
+      <a href="#method">How it's made</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="meta" class="wrap block">
+    <div class="block-head">
+      <h2>Meta tracker</h2>
+      <p class="note" id="meta-status">Loading live match data…</p>
+    </div>
+    <div class="controls">
+      <label>Time
+        <select id="f-days">
+          <option value="7">Last 7 days</option>
+          <option value="14" selected>Last 14 days</option>
+          <option value="30">Last 30 days</option>
+        </select>
+      </label>
+      <label>Rank
+        <select id="f-rank">
+          <option value="">All ranks</option>
+          <option value="71">Archon and up</option>
+          <option value="81">Oracle and up</option>
+          <option value="101">Ascendant and up</option>
+        </select>
+      </label>
+      <label class="grow">Find a hero
+        <input id="f-search" type="search" placeholder="Haze" autocomplete="off">
+      </label>
+    </div>
+    <div class="table-scroll">
+      <table class="ledger" id="meta-table">
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            <th><button data-sort="name">Hero</button></th>
+            <th><button data-sort="tier">Meta</button></th>
+            <th class="num"><button data-sort="wr">Win rate</button></th>
+            <th class="num"><button data-sort="pr">Pick rate</button></th>
+            <th class="num"><button data-sort="matches">Matches</button></th>
+            <th class="num"><button data-sort="kda">KDA</button></th>
+            <th><button data-sort="skill">Skill</button></th>
+          </tr>
+        </thead>
+        <tbody id="meta-body"></tbody>
+      </table>
+    </div>
+    <p class="fine">Meta grade comes from win rate: S 55%+, A 52–55%, B 49.5–52%, C 47–49.5%, D under 47%. Pick rate is the share of matches a hero appears in. Data: <a href="https://deadlock-api.com">deadlock-api.com</a>.</p>
+  </section>
+
+  <section id="lookup" class="wrap block">
+    <div class="block-head">
+      <h2>Counters and items</h2>
+      <p class="note" id="lk-status">Loading matchups…</p>
+    </div>
+    <div class="controls">
+      <label>Hero
+        <select id="lk-hero"></select>
+      </label>
+    </div>
+    <div class="duo-cols">
+      <div>
+        <h3>Hard to play against</h3>
+        <ol class="duo-list" id="lk-bad"></ol>
+      </div>
+      <div>
+        <h3>Easy to play against</h3>
+        <ol class="duo-list" id="lk-good"></ol>
+      </div>
+    </div>
+    <h3 class="sub-h">Items people buy most</h3>
+    <div class="item-grid" id="lk-items"></div>
+    <p class="fine">Matchups are whole games over the last 14 days, scored against what both heroes' normal win rates predict. Items show how often players on this hero buy them and the win rate in those games. Late, expensive items always look strong, because the winning side can afford them, so compare items within a tier.</p>
+  </section>
+
+  <section id="duos" class="wrap block">
+    <div class="block-head">
+      <h2>Lane duos</h2>
+      <p class="note" id="duo-status">Loading lane data…</p>
+    </div>
+    <div class="controls">
+      <label>Your hero
+        <select id="d-hero"></select>
+      </label>
+      <label>Rank
+        <select id="d-rank">
+          <option value="">All ranks</option>
+          <option value="71">Archon and up</option>
+          <option value="81">Oracle and up</option>
+        </select>
+      </label>
+    </div>
+    <div class="duo-cols">
+      <div>
+        <h3>Best partners</h3>
+        <ol class="duo-list" id="duo-best"></ol>
+      </div>
+      <div>
+        <h3>Worst partners</h3>
+        <ol class="duo-list" id="duo-worst"></ol>
+      </div>
+      <div>
+        <h3>Strongest duos overall</h3>
+        <ol class="duo-list" id="duo-top"></ol>
+      </div>
+    </div>
+    <p class="fine">Only games where both heroes shared a lane, last 14 days. "Synergy" is how much more the pair wins than their solo win rates predict, so two strong heroes don't score high just for being strong. Pairs with fewer than 500 games are left out.</p>
+  </section>
+
+  <section id="players" class="wrap block">
+    <div class="block-head">
+      <h2>Top players</h2>
+      <p class="note" id="lb-status">Loading Valve's leaderboard…</p>
+    </div>
+    <div class="controls">
+      <label>Region
+        <select id="lb-region">
+          <option value="Europe">Europe</option>
+          <option value="NAmerica">North America</option>
+          <option value="SAmerica">South America</option>
+          <option value="Asia">Asia</option>
+          <option value="Oceania">Oceania</option>
+        </select>
+      </label>
+      <label class="grow">Find a player
+        <input id="lb-search" type="search" placeholder="Player name" autocomplete="off">
+      </label>
+    </div>
+    <div class="table-scroll">
+      <table class="ledger lb">
+        <thead><tr><th class="num">Rank</th><th>Player</th><th>Most played</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
+    <p class="fine">Valve's official ranked leaderboard, top 100 per region. Valve refreshes it once an hour.</p>
+  </section>
+
+  <section id="skill" class="wrap block">
+    <div class="block-head">
+      <h2>Skill tiers</h2>
+      <p class="note">S takes the most practice, F is the easiest to pick up. Score out of 10.</p>
+    </div>
+    <div id="tiers"></div>
+  </section>
+
+  <section id="roles" class="wrap block">
+    <div class="block-head">
+      <h2>Roles</h2>
+      <p class="note">There's no role queue in Deadlock, so these are the jobs guides usually give each hero. A † means no guide placed the hero, so it's sorted by its deadlock.wiki description.</p>
+    </div>
+    <div id="role-grid" class="role-grid"></div>
+  </section>
+
+  <section id="method" class="wrap block method">
+    <h2>How it's made</h2>
+    <div class="cols">
+      <div>
+        <h3>Meta tracker</h3>
+        <p>Live from the public <a href="https://deadlock-api.com">deadlock-api.com</a> stats service, which collects match results from Valve's servers. If it can't be reached, the page shows a saved copy from 23 Nov 2026.</p>
+      </div>
+      <div>
+        <h3>Skill tiers</h3>
+        <p>60% Valve's in-game complexity rating (1–4), 40% the <a href="https://deadlock-boosting.com/blog/deadlock-characters">deadlock-boosting</a> difficulty guide, plus 1 point for heroes that big sites keep calling high-skill-ceiling, such as Yamato, Shiv and Ivy. Then real matches adjust it by up to 2 points: heroes whose players win far more after 50 games than in their first 10 (like Vyper and Baba) move up, heroes you're good with straight away (like Paige and Seven) move down.</p>
+      </div>
+      <div>
+        <h3>Roles</h3>
+        <p>From <a href="https://everythingedinburgh.com/games/gaming/deadlock-roles/">EverythingEdinburgh</a>, <a href="https://upforge.gg/blog/deadlock-hero-roles-team-compositions">UpForge</a>, <a href="https://metabot.gg/en/deadlock/guides/deadlock-roles-and-positions-explained">Metabot</a>, <a href="https://deadlock-boosting.com/blog/deadlock-characters">deadlock-boosting</a> and <a href="https://deadlock.wiki/Heroes">deadlock.wiki</a>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>Unofficial fan site. Not made by or affiliated with Valve. Deadlock and all hero art are © Valve Corporation.</p>
+</footer>
+
+<script src="snapshot.js"></script>
+<script src="items.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

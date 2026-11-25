@@ -280,7 +280,9 @@
         return '<div class="item">' + img + '<span class="nm">' + esc(x.it[0]) + '</span><span class="val">' + x.share.toFixed(0) + '% buy<small>' + x.wr.toFixed(1) + '% win</small></span></div>';
       }).join("") + '</div>';
     }).join("");
-    document.getElementById("lk-items").innerHTML = html || '<p class="note" style="padding:16px">No item data for this hero right now.</p>';
+    var slug = heroById[id].name.toLowerCase().replace(/&/g, "and").replace(/^the\s+/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    document.getElementById("lk-items").innerHTML = (html || '<p class="note" style="padding:16px">No item data for this hero right now.</p>') +
+      '<p class="fine" style="padding:12px 16px;margin:0;grid-column:1/-1"><a href="builds.html#' + slug + '">See the full ' + esc(heroById[id].name) + ' build, in buying order →</a></p>';
   }
   function loadItems() {
     var id = +lkHero.value;

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deadlocked Builds: a build for every Deadlock hero</title>
+<meta name="description" content="Item builds for all 44 Deadlock heroes, made from what Oracle-and-up players buy and win with: lane, core, mid game, late game and situational items.">
+<meta property="og:title" content="Deadlocked Builds">
+<meta property="og:description" content="Data-made item builds for every Deadlock hero.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://deadlocked-official.github.io/deadlocked/builds.html">
+<link rel="canonical" href="https://deadlocked-official.github.io/deadlocked/builds.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sitebar"><div class="wrap">
+  <a class="brand" href="./">Deadlocked</a>
+  <nav aria-label="Site"><a href="./">Home</a><a href="stats.html">Stats</a><a href="builds.html" aria-current="page">Builds</a><a href="./#drills">Drills</a></nav>
+</div></div>
+<header class="masthead compact">
+  <div class="wrap">
+    <p class="kicker">Builds · <span id="b-date">Nov 2026</span></p>
+    <h1>Hero builds</h1>
+    <p class="lede">One build for every hero, put together from what Oracle-and-up players buy and win with. Pick a hero.</p>
+  </div>
+</header>
+
+<main class="wrap block builds">
+  <div class="picker" id="b-picker" role="list"></div>
+
+  <section class="build" id="b-build" aria-live="polite"></section>
+
+  <div class="method">
+    <h2>How the builds are made</h2>
+    <div class="cols">
+      <div><h3>What good players buy</h3><p>For every hero I took all item purchases from Oracle-and-up games over the last three weeks. Each phase starts from the items most of those players buy.</p></div>
+      <div><h3>Nudged toward what wins</h3><p>Items get extra weight when they win more than other popular items in the same tier. Items bought much later than usual lose some weight, because those mostly show up in long games that were already being won.</p></div>
+      <div><h3>Order and phases</h3><p>Lane is tier 1 items bought in the first 12 minutes, then tier 2 (Core), tier 3 (Mid game) and tier 4 (Late game). Inside each phase, items are in the order players usually buy them.</p></div>
+    </div>
+  </div>
+</main>
+
+<footer class="wrap foot">
+  <p>Unofficial fan site. Not made by or affiliated with Valve. Deadlock and all hero and item art are © Valve Corporation.</p>
+</footer>
+<script src="snapshot.js"></script>
+<script src="items.js"></script>
+<script src="builds.js"></script>
+<script src="buildpage.js"></script>
+</body>
+</html>
