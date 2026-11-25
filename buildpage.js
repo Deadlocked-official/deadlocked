@@ -28,7 +28,7 @@
     return '<a role="listitem" class="pick" href="#' + slug(h.name) + '" data-id="' + h.id + '" title="' + esc(h.name) + '">' + img(h.img, "", h.name.replace(/^The /, "")[0]) + '<span>' + esc(h.name) + '</span></a>';
   }).join("");
 
-  var FLAG = { "active": "Active", "anti-heal": "Anti-heal", "anti-CC": "Anti-CC", "sell-late": "Sell for a late item" };
+  var FLAG = { "active": "Active", "anti-heal": "Anti-heal", "anti-CC": "Anti-CC", "sell-late": "Sold when slots fill" };
 
   function itemRow(i) {
     var it = ITEMS[i[0]];
@@ -93,15 +93,16 @@
     b.final.forEach(function (id) { var s = ITEMS[id] && ITEMS[id][1]; if (s) count[s] = (count[s] || 0) + 1; });
     var mix = [["weapon", "weapon"], ["vitality", "vitality"], ["spirit", "spirit"]].filter(function (s) { return count[s[0]]; })
       .map(function (s) { return count[s[0]] + " " + s[1]; }).join(", ");
-    return '<section class="final"><h3>End-of-game inventory</h3><p class="note">What you usually still hold at the end: ' + b.final.length + ' items (' + mix + '). Lane items you upgrade or sell are gone by then.</p><div class="final-row">' +
+    return '<section class="final"><h3>End-of-game inventory</h3><p class="note">Your 12 slots at the end of a long game: ' + b.final.length + ' of 12 filled (' + mix + '). Items you upgraded or sold along the way are gone.</p><div class="final-row">' +
       b.final.map(function (id) { return '<span class="fi" title="' + esc(itemName(id)) + '">' + itemIcon(id) + '<small>' + esc(itemName(id)) + '</small></span>'; }).join("") + '</div></section>';
   }
 
   function sellBlock(b, hero) {
     if (!b.sells || !b.sells.length) return '<section class="sells"><h3>What to sell</h3><p class="note">High-rank ' + esc(hero) + ' players rarely sell anything from this build. They upgrade their early items instead.</p></section>';
-    return '<section class="sells"><h3>What to sell</h3><p class="note">When your slots fill up, sell these first, in this order. Each one is matched with the late item high-rank players usually buy around the same time.</p><ol class="sell-list">' +
+    return '<section class="sells"><h3>What to sell</h3><p class="note">You only have 12 item slots. Sell these in this order: some are items most high-rank players sell anyway, the rest make room once all 12 slots are full. Items you upgrade aren\'t listed, because the upgrade uses them up.</p><ol class="sell-list">' +
       b.sells.map(function (s) {
-        return '<li><span class="sell-from">' + itemIcon(s[0]) + '<span><b>Sell ' + esc(itemName(s[0])) + '</b><small>around minute ' + Math.round(s[2]) + ' · ' + s[1] + '% of players sell it</small></span></span>' +
+        var why = s[4] === "full" ? "slots full · weakest item you hold" : s[1] + "% of high-rank players sell it";
+        return '<li><span class="sell-from">' + itemIcon(s[0]) + '<span><b>Sell ' + esc(itemName(s[0])) + '</b><small>around minute ' + Math.round(s[2]) + ' · ' + why + '</small></span></span>' +
           (s[3] ? '<span class="sell-arrow" aria-hidden="true">→</span><span class="sell-to">' + itemIcon(s[3]) + '<span>to make room for<b>' + esc(itemName(s[3])) + '</b></span></span>' : '<span class="sell-to note">for your next late item</span>') + '</li>';
       }).join("") + '</ol></section>';
   }

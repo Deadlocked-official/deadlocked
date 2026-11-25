@@ -110,7 +110,7 @@
         }
       }
       var mid = b.phases[2] && b.phases[2].items[0], late = b.phases[3] && b.phases[3].items[0];
-      if (b.sells && b.sells.length) list.push("<b>When your slots fill up.</b> Sell " + b.sells.map(function (s) {
+      if (b.sells && b.sells.length) list.push("<b>Managing your 12 slots.</b> Sell " + b.sells.map(function (s) {
         return "<b>" + esc(itemName(s[0])) + "</b> around minute " + Math.round(s[2]) + (s[3] ? " for " + esc(itemName(s[3])) : "");
       }).join(", then ") + '. <a href="builds.html#' + slug(g.name) + '">Sell plan →</a>');
       if (mid) list.push("<b>Power spike.</b> Your first tier-3 item, usually <b>" + esc(itemName(mid[0])) + "</b>, lands around minute " + Math.round(mid[3]) + ". That's when to start forcing fights." + (late ? " Your first tier-4 item comes around minute " + Math.round(late[3]) + "." : ""));

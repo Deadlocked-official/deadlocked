@@ -14,7 +14,9 @@ Game reasoning added on top:
   * each item gets its key stats, its effect, and a short reason tied to the hero's kit
     (which abilities scale with spirit power, gun vs spirit style, lane vs late game)
   * upgrade paths: an item that is a component of a later pick "builds into" it
-  * end-of-game inventory: everything except components that were upgraded and items usually sold
+  * 12-slot inventory: the build is played through in buying order; upgrades use up their components,
+    items most players sell are sold on time, and a full inventory sells its weakest item for the new one
+  * end-of-game inventory and "what to sell" both come from that play-through
   * skill order: which ability high-rank players max first, and how that does
   * counter items: for the hero's two hardest matchups, items that win clearly more in that matchup
 
@@ -23,7 +25,7 @@ Usage: python tools/make_builds.py <data_dir> <site_dir>
 import glob, html, json, os, re, sys
 
 PHASES = [("Lane", [1], 4), ("Core", [2], 5), ("Mid game", [3], 5), ("Late game", [4, 5], 5)]
-MAX_HELD = 16  # a full late-game inventory
+MAX_HELD = 12  # Deadlock's inventory: 12 item slots in total
 NOT_DAMAGE = {"AbilityCooldown", "AbilityDuration", "AbilityCastRange", "AbilityChannelTime", "AbilityCastDelay",
               "AbilityCharges", "AbilityCooldownBetweenCharge", "Radius", "AbilityUnitTargetLimit"}
 
@@ -378,15 +380,35 @@ def main():
             return [r["id"], round(r["share"], 1), round(r["wr"], 1), round(r["t"] / 60, 1), round(r["sold"]),
                     note, flags, builds_into.get(r["id"]), [c for c in comps if c], round(r["st"] / 60, 1) if r["st"] else None]
 
-        # End-of-game inventory: drop upgraded components and items that are usually sold,
-        # then if it's still over a full inventory, sell the cheapest, least important items for late ones.
-        final = [r for _, pick in phases for r in pick if r["id"] not in builds_into and r["sold"] < 50]
-        final.sort(key=lambda r: (-r["tier"], -r["score"]))
-        sell_late = set()
-        if len(final) > MAX_HELD:
-            sell_late = {r["id"] for r in final[MAX_HELD:]}
-            final = final[:MAX_HELD]
-        final.sort(key=lambda r: (-r["tier"], r["t"]))
+        # Play the build through in buying order with a 12-slot inventory:
+        #  * buying an upgrade uses up its component (no sale needed)
+        #  * items most high-rank players sell (50%+) are sold at their usual time
+        #  * if a purchase would go over 12 items, the weakest item held (lowest tier, then lowest score) is sold for it
+        buys = sorted([r for _, pick in phases for r in pick], key=lambda r: r["t"])
+        events = [(r["t"], 0, r) for r in buys]
+        events += [(r["st"], 1, r) for r in buys if r["sold"] >= 50 and r["id"] not in builds_into and r["st"] > r["t"]]
+        events.sort(key=lambda e: (e[0], e[1]))
+        held, sells, sell_late, repl_used = [], [], set(), set()
+        comp_of = {r["id"]: {by_class.get(c) for c in items[r["id"]].get("component_items") or []} for r in buys}
+        for t, kind, r in events:
+            if kind == 0:
+                held = [x for x in held if x["id"] not in comp_of[r["id"]]]
+                held.append(r)
+                if len(held) > MAX_HELD:
+                    victim = min((x for x in held if x is not r), key=lambda x: (x["tier"], x["score"]))
+                    held.remove(victim)
+                    sell_late.add(victim["id"])
+                    repl_used.add(r["id"])
+                    sells.append([victim["id"], round(victim["sold"]), round(t / 60, 1), r["id"], "full"])
+            elif r in held:
+                held.remove(r)
+                near = [b for b in buys if b["id"] not in repl_used and b["tier"] > r["tier"] and abs(b["t"] - t) <= 4 * 60]
+                repl = min(near, key=lambda b: abs(b["t"] - t)) if near else None
+                if repl:
+                    repl_used.add(repl["id"])
+                sells.append([r["id"], round(r["sold"]), round(t / 60, 1), repl["id"] if repl else None, "common"])
+        sells.sort(key=lambda s: s[2])
+        final = sorted(held, key=lambda r: (-r["tier"], r["t"]))
 
         # Skill order.
         skill = None
@@ -399,23 +421,6 @@ def main():
             mf.sort(key=lambda m: -m["matches"])
             if mf:
                 skill = [[m["ability_id"], round(100 * m["matches"] / total, 1), round(100 * m["wins"] / m["matches"], 1)] for m in mf]
-
-        # What to sell: build items high-rank players often sell (not ones they upgrade), in the order they
-        # sell them, each matched with the late item usually bought around the same time.
-        sells, taken = [], set()
-        sellable = [r for _, pick in phases for r in pick
-                    if r["sold"] >= 25 and r["id"] not in builds_into and r["st"] and r["tier"] <= 3]
-        main_late = [r for _, pick in phases[2:] for r in pick]
-        for r in sorted(sellable, key=lambda r: r["st"]):
-            repl = None
-            for pool in (main_late, extra):  # prefer the main build, then situational items
-                near = [b for b in pool if b["id"] not in taken and b["tier"] > r["tier"] and abs(b["t"] - r["st"]) <= 4 * 60]
-                if near:
-                    repl = min(near, key=lambda b: abs(b["t"] - r["st"]))
-                    break
-            if repl:
-                taken.add(repl["id"])
-            sells.append([r["id"], round(r["sold"]), round(r["st"] / 60, 1), repl["id"] if repl else None])
 
         # Full ability point order.
         points = None
