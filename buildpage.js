@@ -70,7 +70,9 @@
       }
       tip += '</p>';
     }
-    return '<section class="skill"><h3>Skill order</h3>' + tip + '<div class="abilities">' + cards + '</div></section>';
+    var order = window.renderPointOrder ? window.renderPointOrder(b.kit, b.points) : "";
+    return '<section class="skill"><h3>Skill order</h3>' + tip + '<div class="abilities">' + cards + '</div>' +
+      (order ? '<h4 class="po-title">Ability point order</h4>' + order : "") + '</section>';
   }
 
   function counterBlock(b, hero) {

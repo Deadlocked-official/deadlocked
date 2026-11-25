@@ -239,6 +239,38 @@ def active_reason(it):
     return None
 
 
+def point_order(orders, kit_ids, priority):
+    """Most common ability point path: at each step, the next pick most high-rank players make after the
+    same earlier picks. Returns [[ability id, level (0 = unlock, 1-3 = upgrade), minute or None, % following]].
+    If the data runs out before all 16 points, the rest follow the max-first priority."""
+    orders = [o for o in orders if o.get("matches") and o.get("abilities")]
+    total0 = sum(o["matches"] for o in orders) or 1
+    prefix, steps, count = [], [], {a: 0 for a in kit_ids}
+    for step in range(4 * len(kit_ids)):
+        tally, times, n = {}, {}, 0
+        for o in orders:
+            ab = o["abilities"]
+            if len(ab) > step and ab[:step] == prefix and ab[step] in count and count[ab[step]] < 4:
+                tally[ab[step]] = tally.get(ab[step], 0) + o["matches"]
+                t = (o.get("avg_upgrade_times_s") or [None] * len(ab))
+                if step < len(t) and t[step] is not None:
+                    w, s = times.get(ab[step], (0, 0))
+                    times[ab[step]] = (w + o["matches"], s + o["matches"] * t[step])
+                n += o["matches"]
+        if not tally or n < 200:
+            break
+        pick = max(tally, key=tally.get)
+        w, s = times.get(pick, (0, 0))
+        steps.append([pick, count[pick], round(s / w / 60, 1) if w else None, round(100 * tally[pick] / total0, 1)])
+        count[pick] += 1
+        prefix.append(pick)
+    for a in priority + [k for k in kit_ids if k not in priority]:
+        while count.get(a, 4) < 4:
+            steps.append([a, count[a], None, None])
+            count[a] += 1
+    return steps
+
+
 def pick_slug(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower().replace("&", "and")).strip("-")
 
@@ -367,6 +399,13 @@ def main():
             if mf:
                 skill = [[m["ability_id"], round(100 * m["matches"] / total, 1), round(100 * m["wins"] / m["matches"], 1)] for m in mf]
 
+        # Full ability point order.
+        points = None
+        order_path = os.path.join(src, f"{hid}_order.json")
+        if os.path.exists(order_path) and kit:
+            priority = [s[0] for s in (skill or [])]
+            points = point_order(load(order_path), [a["id"] for a in kit], priority)
+
         # Counter items for the two hardest matchups.
         counters = []
         for f in sorted(glob.glob(os.path.join(src, f"{hid}_vs_*.json"))):
@@ -388,7 +427,7 @@ def main():
             if best:
                 counters.append({"enemy": enemy, "items": [[b[1], b[2], b[3]] for b in best[:2]]})
 
-        builds[hid] = {"style": style, "why": why, "games": games[hid], "kit": kit, "skill": skill,
+        builds[hid] = {"style": style, "why": why, "games": games[hid], "kit": kit, "skill": skill, "points": points,
                        "phases": [{"name": p, "items": [pack(r) for r in pick]} for p, pick in phases],
                        "situational": [pack(r) for r in extra],
                        "final": [r["id"] for r in final], "counters": counters}

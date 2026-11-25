@@ -6,6 +6,7 @@
   _counters.json      hero-vs-hero results
   <hero>.json         item stats for that hero
   <hero>_maxfirst.json  which ability that hero's players max first
+  <hero>_order.json   full ability point orders (unlocks and upgrades) and when they happen
   <hero>_vs_<enemy>.json item stats for that hero against one of its hardest matchups
 
 Usage: python tools/fetch_item_stats.py <out_dir> [days] [min_badge]
@@ -73,6 +74,7 @@ def main():
         hid = h["id"]
         save(out, f"{hid}.json", get(f"{API}/v1/analytics/item-stats?hero_id={hid}&{q}&min_matches=50"))
         save(out, f"{hid}_maxfirst.json", get(f"{API}/v1/analytics/ability-max-first-stats?hero_id={hid}&{q}"))
+        save(out, f"{hid}_order.json", get(f"{API}/v1/analytics/ability-order-stats?hero_id={hid}&{q}&min_matches=20"))
         for _, enemy in sorted(hardest.get(hid, []))[:2]:
             save(out, f"{hid}_vs_{enemy}.json",
                  get(f"{API}/v1/analytics/item-stats?hero_id={hid}&enemy_hero_ids={enemy}&{q}&min_matches=30"))

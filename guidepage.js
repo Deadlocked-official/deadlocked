@@ -103,6 +103,11 @@
       if (b.skill && b.skill[0]) {
         var first = g.kit.filter(function (k) { return k.id === b.skill[0][0]; })[0];
         if (first) list.push("<b>Skill order.</b> Max <b>" + esc(first.name) + "</b> first. " + Math.round(b.skill[0][1]) + "% of high-rank players do, and they win " + b.skill[0][2].toFixed(1) + "% of games.");
+        if (b.points && b.points.length >= 4) {
+          var nm = {}; b.kit.forEach(function (k) { nm[k.id] = k.name; });
+          var LV = ["", " 1", " 2", " 3"];
+          list.push("<b>First points.</b> " + b.points.slice(0, 6).map(function (p) { return esc(nm[p[0]]) + (p[1] ? " upgrade" + LV[p[1]] : ""); }).join(" → ") + '. <a href="#' + slug(g.name) + '" data-jump="points">Full point order ↓</a>');
+        }
       }
       var mid = b.phases[2] && b.phases[2].items[0], late = b.phases[3] && b.phases[3].items[0];
       if (mid) list.push("<b>Power spike.</b> Your first tier-3 item, usually <b>" + esc(itemName(mid[0])) + "</b>, lands around minute " + Math.round(mid[3]) + ". That's when to start forcing fights." + (late ? " Your first tier-4 item comes around minute " + Math.round(late[3]) + "." : ""));
@@ -165,6 +170,7 @@
       statCell("Heavy melee", g.stats.heavy_melee, "", null) +
       '</div><p class="fine">' + esc(w.name || "") + (w.pellets > 1 ? " fires " + w.pellets + " pellets per shot" : "") + '. Base values before items and level-ups.</p>' +
       '<h3 class="sub-h">Abilities</h3><div class="gabs">' + abilities(g, b) + '</div>' +
+      (b && b.points && window.renderPointOrder ? '<h3 class="sub-h" id="points">Ability point order</h3>' + window.renderPointOrder(b.kit, b.points) : "") +
       (g.lore ? '<h3 class="sub-h">Story</h3><p class="lore">' + esc(g.lore) + '</p>' : "") +
       '<p class="fine"><a href="builds.html#' + slug(g.name) + '">Full build →</a> · <a href="stats.html#lookup">Counters and items →</a></p>';
     document.title = g.name + " guide · Deadlocked";
@@ -178,6 +184,13 @@
     var h = heroes.filter(function (x) { return slug(x.name) === s; })[0];
     show(h ? h.id : (heroes.filter(function (x) { return x.name === "Haze"; })[0] || heroes[0]).id);
   }
+  out.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-jump]");
+    if (!a) return;
+    e.preventDefault();
+    var el = document.getElementById(a.dataset.jump);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   window.addEventListener("hashchange", fromHash);
   fromHash();
 })();
