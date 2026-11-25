@@ -1,0 +1,56 @@
+name: Weekly refresh of builds and tier list
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday at 06:00 UTC
+  workflow_dispatch: {}  # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh item list
+        run: python tools/make_items.py .
+
+      - name: Download item stats (Oracle and up, last 21 days)
+        run: python tools/fetch_item_stats.py "$RUNNER_TEMP/itemstats" 21 81
+
+      - name: Rebuild hero builds
+        run: python tools/make_builds.py "$RUNNER_TEMP/itemstats" .
+
+      - name: Recalculate skill tiers
+        run: python tools/make_tiers.py .
+
+      - name: Update sitemap dates
+        run: sed -i -E "s#<lastmod>[0-9-]+</lastmod>#<lastmod>$(date -u +%F)</lastmod>#g" sitemap.xml
+
+      - name: Commit and publish if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "deadlocked-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add items.js builds.js tiers.js sitemap.xml
+          if git diff --cached --quiet; then
+            echo "Nothing changed this week."
+            exit 0
+          fi
+          git commit -m "Weekly refresh: builds and skill tiers ($(date -u +%F))"
+          git push
+          # Pushes made with the workflow token don't always start a Pages build, so ask for one.
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" || echo "Pages build request failed; the next push will publish it."

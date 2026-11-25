@@ -14,6 +14,13 @@
     ["F", "Very easy", [["Wraith", 2.8, 5.4], ["Warden", 2.8, 2.9], ["Lady Geist", 2.6, 2.2], ["Graves", 2.4, 1.8], ["Abrams", 2.3, 4.1], ["Grey Talon", 2.3, 1.5], ["Nurse Harrow", 2.2, 3.9], ["Violet", 2.0, 3.4], ["McGinnis", 1.5, 4.1], ["Haze", 1.0, 2.8], ["Infernus", 0.9, 2.6], ["Seven", 0.5, 1.7], ["Paige", 0.3, 1.0]]]
   ];
 
+  // tiers.js is rebuilt every week by tools/make_tiers.py; the list above is only a fallback.
+  if (window.TIERS && window.TIERS.tiers && window.TIERS.tiers.length) {
+    SKILL = window.TIERS.tiers.filter(function (t) { return t[2].length; });
+    var td = document.getElementById("tier-date");
+    if (td) td.textContent = " Recalculated " + new Date(window.TIERS.taken + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) + ".";
+  }
+
   var ROLES = [
     ["Frontliner", "Soaks damage up front and makes space.", ["Abrams", "Victor", "Warden", "Mo & Krill", "Billy", "Rat King†", "Silver†"]],
     ["Gun carry", "Scales into the team's main gun damage.", ["Haze", "Wraith", "Vindicta", "Vyper†", "Holliday†", "Venator†", "Grey Talon†", "Deadman Danny†", "Mina†"]],
