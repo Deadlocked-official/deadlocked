@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · Deadlocked</title>
+<meta name="robots" content="noindex">
+<script>
+  // The site used to live at /deadlocked/. Send old links to the same page at the new address.
+  (function () {
+    var p = location.pathname;
+    if (p === "/deadlocked" || p.indexOf("/deadlocked/") === 0) {
+      location.replace(p.replace(/^\/deadlocked\/?/, "/") + location.search + location.hash);
+    }
+  })();
+</script>
+<style>
+  body { margin: 0; background: #0e1513; color: #e8e3d3; font: 16px/1.6 system-ui, "Segoe UI", sans-serif; padding: 48px 16px; }
+  main { max-width: 560px; margin: 0 auto; }
+  h1 { font: 900 56px/1 Impact, "Arial Narrow", sans-serif; text-transform: uppercase; margin: 0 0 12px; }
+  a { color: #c9a45c; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Not found</h1>
+  <p>That page doesn't exist. Try the <a href="/">Deadlocked home page</a>, the <a href="/guide.html">hero guides</a>, or the <a href="/builds.html">builds</a>.</p>
+</main>
+</body>
+</html>
