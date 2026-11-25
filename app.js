@@ -79,7 +79,7 @@
   var body = document.getElementById("meta-body");
   var statusEl = document.getElementById("meta-status");
   var fDays = document.getElementById("f-days"), fRank = document.getElementById("f-rank"), fSearch = document.getElementById("f-search");
-  var rows = [], sortKey = "wr", sortDir = -1, cache = {};
+  var rows = [], sortKey = "wr", sortDir = -1, cache = {}, liveMatches = {};
   var gradeOrder = { S: 0, A: 1, B: 2, C: 3, D: 4 }, skillOrder = { S: 0, A: 1, B: 2, C: 3, D: 4, F: 5 };
 
   function grade(wr) { return wr >= 55 ? "S" : wr >= 52 ? "A" : wr >= 49.5 ? "B" : wr >= 47 ? "C" : "D"; }
@@ -142,6 +142,7 @@
     p.then(function (stats) {
       if (key !== fDays.value + "|" + fRank.value) return;
       rows = build(stats);
+      if (days === 14 && !rank) rows.forEach(function (r) { liveMatches[r.name] = r.matches; });
       var games = 0; stats.forEach(function (s) { games += s.matches; });
       statusEl.textContent = "Live · " + Math.round(games / 12).toLocaleString("en-US") + " matches · " + fDays.options[fDays.selectedIndex].text.toLowerCase() + " · " + fRank.options[fRank.selectedIndex].text.toLowerCase();
       document.getElementById("stamp").textContent = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -228,6 +229,83 @@
   dRank.addEventListener("change", loadDuos);
   useSnapPairs("Loading live lane data…");
   loadDuos();
+
+  // Counters and items
+  var CTR_API = "https://api.deadlock-api.com/v1/analytics/hero-counter-stats";
+  var ITEM_API = "https://api.deadlock-api.com/v1/analytics/item-stats";
+  var ITEMS = window.ITEMS || {};
+  var lkHero = document.getElementById("lk-hero"), lkStatus = document.getElementById("lk-status");
+  var matchups = [], heroWr = {}, itemCache = {};
+  snap.heroes.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (h) {
+    var o = document.createElement("option"); o.value = h.id; o.textContent = h.name;
+    if (h.name === "Haze") o.selected = true;
+    lkHero.appendChild(o);
+  });
+  function setMatchups(raw) {
+    var tot = {};
+    raw.forEach(function (p) { var t = tot[p[0]] || (tot[p[0]] = { w: 0, m: 0 }); t.w += p[2]; t.m += p[3]; });
+    heroWr = {};
+    Object.keys(tot).forEach(function (id) { heroWr[id] = tot[id].w / tot[id].m; });
+    matchups = raw.filter(function (p) { return heroById[p[0]] && heroById[p[1]] && heroWr[p[0]] && heroWr[p[1]]; }).map(function (p) {
+      var wr = p[2] / p[3];
+      var exp = sigmoid(logit(heroWr[p[0]]) - logit(heroWr[p[1]]));
+      return { a: p[0], b: p[1], wr: 100 * wr, syn: 100 * (wr - exp), n: p[3] };
+    });
+  }
+  function renderCounters() {
+    var id = +lkHero.value;
+    var mine = matchups.filter(function (m) { return m.a === id; }).sort(function (x, y) { return x.syn - y.syn; });
+    var empty = '<li><span class="nm note">Not enough games yet.</span></li>';
+    document.getElementById("lk-bad").innerHTML = mine.slice(0, 6).map(function (m) { return duoItem(m.b, m, false); }).join("") || empty;
+    document.getElementById("lk-good").innerHTML = mine.slice(-6).reverse().map(function (m) { return duoItem(m.b, m, false); }).join("") || empty;
+  }
+  function heroGames(id) {
+    var live = liveMatches[heroById[id].name];
+    return live || heroById[id].matches;
+  }
+  function renderItems(id, stats) {
+    var games = heroGames(id);
+    var byTier = {};
+    stats.forEach(function (s) {
+      var it = ITEMS[s.item_id];
+      if (!it || !s.matches) return;
+      var share = 100 * s.matches / games;
+      if (share < 2) return;
+      (byTier[it[2]] || (byTier[it[2]] = [])).push({ it: it, share: share, wr: 100 * s.wins / s.matches });
+    });
+    var html = Object.keys(byTier).sort().map(function (t) {
+      var list = byTier[t].sort(function (x, y) { return y.share - x.share; }).slice(0, 6);
+      return '<div class="item-tier"><h4>Tier ' + t + ' · ' + list[0].it[3].toLocaleString("en-US") + ' souls</h4>' + list.map(function (x) {
+        var img = x.it[4] ? '<img class="slot-' + esc(x.it[1]) + '" src="' + esc(x.it[4]) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : '<span class="ph">?</span>';
+        return '<div class="item">' + img + '<span class="nm">' + esc(x.it[0]) + '</span><span class="val">' + x.share.toFixed(0) + '% buy<small>' + x.wr.toFixed(1) + '% win</small></span></div>';
+      }).join("") + '</div>';
+    }).join("");
+    document.getElementById("lk-items").innerHTML = html || '<p class="note" style="padding:16px">No item data for this hero right now.</p>';
+  }
+  function loadItems() {
+    var id = +lkHero.value;
+    var url = ITEM_API + "?hero_id=" + id + "&min_matches=200&min_unix_timestamp=" + (Math.floor(Date.now() / 1000) - 14 * 86400);
+    var p = itemCache[id] || (itemCache[id] = fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }));
+    document.getElementById("lk-items").innerHTML = '<p class="note" style="padding:16px">Loading items…</p>';
+    p.then(function (stats) { if (id === +lkHero.value) renderItems(id, stats); })
+      .catch(function () { delete itemCache[id]; if (id === +lkHero.value) document.getElementById("lk-items").innerHTML = '<p class="note" style="padding:16px">Item data couldn\'t be reached right now. Try again in a minute.</p>'; });
+  }
+  function loadCounters() {
+    var url = CTR_API + "?same_lane_filter=false&min_matches=500&min_unix_timestamp=" + (Math.floor(Date.now() / 1000) - 14 * 86400);
+    fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (raw) {
+      setMatchups(raw.map(function (x) { return [x.hero_id, x.enemy_hero_id, x.wins, x.matches_played]; }));
+      lkStatus.textContent = "Live · last 14 days · all ranks";
+      renderCounters();
+    }).catch(function () {
+      lkStatus.textContent = "Live matchups couldn't be reached. Showing the saved copy from " + snap.taken + ".";
+    });
+  }
+  lkHero.addEventListener("change", function () { renderCounters(); loadItems(); });
+  setMatchups(snap.counters || []);
+  lkStatus.textContent = "Loading live matchups…";
+  renderCounters();
+  loadCounters();
+  loadItems();
 
   // Top players
   var LB_API = "https://api.deadlock-api.com/v1/leaderboard/";

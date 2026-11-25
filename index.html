@@ -23,8 +23,10 @@
     <p class="lede">Who's winning right now, how hard each hero is to learn, and what job they do on the team. All 44 heroes.</p>
     <nav class="tabs" aria-label="Sections">
       <a href="#meta">Meta tracker</a>
+      <a href="#lookup">Counters and items</a>
       <a href="#duos">Lane duos</a>
       <a href="#players">Top players</a>
+      <a href="aim.html">Aim trainer</a>
       <a href="#skill">Skill tiers</a>
       <a href="#roles">Roles</a>
       <a href="#method">How it's made</a>
@@ -76,6 +78,31 @@
       </table>
     </div>
     <p class="fine">Meta grade comes from win rate: S 55%+, A 52–55%, B 49.5–52%, C 47–49.5%, D under 47%. Pick rate is the share of matches a hero appears in. Data: <a href="https://deadlock-api.com">deadlock-api.com</a>.</p>
+  </section>
+
+  <section id="lookup" class="wrap block">
+    <div class="block-head">
+      <h2>Counters and items</h2>
+      <p class="note" id="lk-status">Loading matchups…</p>
+    </div>
+    <div class="controls">
+      <label>Hero
+        <select id="lk-hero"></select>
+      </label>
+    </div>
+    <div class="duo-cols">
+      <div>
+        <h3>Hard to play against</h3>
+        <ol class="duo-list" id="lk-bad"></ol>
+      </div>
+      <div>
+        <h3>Easy to play against</h3>
+        <ol class="duo-list" id="lk-good"></ol>
+      </div>
+    </div>
+    <h3 class="sub-h">Items people buy most</h3>
+    <div class="item-grid" id="lk-items"></div>
+    <p class="fine">Matchups are whole games over the last 14 days, scored against what both heroes' normal win rates predict. Items show how often players on this hero buy them and the win rate in those games. Late, expensive items always look strong, because the winning side can afford them, so compare items within a tier.</p>
   </section>
 
   <section id="duos" class="wrap block">
@@ -180,6 +207,7 @@
 </footer>
 
 <script src="snapshot.js"></script>
+<script src="items.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

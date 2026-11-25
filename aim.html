@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deadlocked Aim Trainer</title>
+<meta name="description" content="Free browser aim trainer for Deadlock players: flick, multi-target, tracking and headshot drills with reaction time and accuracy stats.">
+<meta property="og:title" content="Deadlocked Aim Trainer">
+<meta property="og:description" content="Flick, multi-target, tracking and headshot drills in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://deadlocked-official.github.io/deadlocked/aim.html">
+<link rel="canonical" href="https://deadlocked-official.github.io/deadlocked/aim.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead compact">
+  <div class="wrap">
+    <p class="kicker"><a href="./">← Deadlocked</a> · Practice</p>
+    <h1>Aim trainer</h1>
+    <p class="lede">Short drills to warm up before you queue. Your best scores stay saved in this browser.</p>
+  </div>
+</header>
+
+<main class="wrap block aim">
+  <div class="controls">
+    <label>Drill
+      <select id="a-mode">
+        <option value="flick">Flick: one target, fast</option>
+        <option value="multi">Multi: three targets at once</option>
+        <option value="track">Tracking: hold on a strafing target</option>
+        <option value="head">Headshots: aim for the head</option>
+      </select>
+    </label>
+    <label>Target size
+      <select id="a-size">
+        <option value="large">Large</option>
+        <option value="medium" selected>Medium</option>
+        <option value="small">Small</option>
+      </select>
+    </label>
+    <label>Length
+      <select id="a-time">
+        <option value="30" selected>30 seconds</option>
+        <option value="60">60 seconds</option>
+      </select>
+    </label>
+    <button id="a-start" class="btn" type="button">Start</button>
+  </div>
+
+  <div class="hud" aria-live="polite">
+    <div><span>Time</span><b id="h-time">30.0</b></div>
+    <div><span>Score</span><b id="h-score">0</b></div>
+    <div><span id="h-acc-label">Accuracy</span><b id="h-acc">–</b></div>
+    <div><span id="h-extra-label">Avg reaction</span><b id="h-extra">–</b></div>
+    <div><span>Best</span><b id="h-best">–</b></div>
+  </div>
+
+  <div class="arena-wrap">
+    <canvas id="arena" aria-label="Aim trainer play area"></canvas>
+    <div class="arena-msg" id="a-msg">
+      <p class="big">Pick a drill and press Start</p>
+      <p>Click targets as fast as you can. Press Esc to stop early.</p>
+    </div>
+  </div>
+
+  <div class="method">
+    <div class="cols">
+      <div><h3>Flick</h3><p>One target at a time in a random spot. Trains snapping onto heroes that jump into view. Score counts hits; reaction is the average time from spawn to hit.</p></div>
+      <div><h3>Multi</h3><p>Three targets stay up; each hit spawns a new one. Trains moving between targets in a team fight.</p></div>
+      <div><h3>Tracking</h3><p>Hold the mouse button while the cursor is on a target that strafes and dashes. Trains staying on a moving hero with automatic weapons.</p></div>
+      <div><h3>Headshots</h3><p>Hero-shaped targets that sidestep. Head hits score 3, body hits 1. Deadlock rewards headshots with bonus damage on most guns.</p></div>
+    </div>
+  </div>
+</main>
+
+<footer class="wrap foot">
+  <p>Unofficial fan site. Not made by or affiliated with Valve.</p>
+</footer>
+<script src="aim.js"></script>
+</body>
+</html>
