@@ -10,6 +10,11 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://deadlocked-official.github.io/">
 <link rel="canonical" href="https://deadlocked-official.github.io/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:image" content="https://deadlocked-official.github.io/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0e1513">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -18,7 +23,7 @@
 <body>
 <div class="sitebar"><div class="wrap">
   <a class="brand" href="./">Deadlocked</a>
-  <nav aria-label="Site"><a href="./" aria-current="page">Home</a><a href="guide.html">Guides</a><a href="builds.html">Builds</a><a href="stats.html">Stats</a><a href="#drills">Drills</a></nav>
+  <nav aria-label="Site"><a href="./" aria-current="page">Home</a><a href="guide.html">Guides</a><a href="builds.html">Builds</a><a href="stats.html">Stats</a><a href="player.html">Players</a><a href="draft.html">Draft</a><a href="items.html">Items</a><a href="#drills">Drills</a></nav>
 </div></div>
 
 <header class="masthead home-hero">
@@ -45,7 +50,11 @@
       <a class="feature" href="stats.html#players"><b>Top players</b><span>Valve's ranked leaderboard for every region, with their main heroes.</span></a>
       <a class="feature" href="stats.html#skill"><b>Skill tiers</b><span>How much practice each hero takes, checked against real matches.</span></a>
       <a class="feature" href="stats.html#roles"><b>Roles</b><span>Frontliners, carries, supports and the rest, for every hero.</span></a>
-      <a class="feature" href="#drills"><b>Aim drills</b><span>Twelve short drills with reaction time, accuracy and saved best scores.</span></a>
+      <a class="feature" href="player.html"><b>Player lookup</b><span>Your rank, heroes and recent matches, compared with everyone else.</span></a>
+      <a class="feature" href="draft.html"><b>Draft helper</b><span>Pick both teams. Get the best pick, lane partner and what to buy.</span></a>
+      <a class="feature" href="items.html"><b>Item tier list</b><span>Every item graded, with stats, upgrades and who buys it.</span></a>
+      <a class="feature" href="changes.html"><b>What changed</b><span>Risers, fallers and everything that moved this week.</span></a>
+      <a class="feature" href="#drills"><b>Aim drills</b><span>Twelve drills, a daily challenge and a sensitivity converter.</span></a>
     </div>
   </section>
 
@@ -54,6 +63,7 @@
       <h2>Aim drills</h2>
       <p class="note">Pick a drill, then press Start. Esc stops early. Best scores are saved in this browser.</p>
     </div>
+    <div class="daily" id="daily"></div>
     <div class="drill-grid">
       <button type="button" class="drill" data-drill="flick"><b>Flick</b><span>One target at a time. Snap onto it fast.</span></button>
       <button type="button" class="drill" data-drill="multi"><b>Multi</b><span>Three targets up at once, for switching in fights.</span></button>
@@ -114,6 +124,28 @@
         <p>Click targets as fast as you can. Press Esc to stop early.</p>
       </div>
     </div>
+    <section class="sens" aria-labelledby="sens-h">
+      <h3 id="sens-h">Sensitivity converter</h3>
+      <p class="note">Bring your aim over from another game. Same DPI, same feel.</p>
+      <div class="controls">
+        <label>From
+          <select id="s-from"></select>
+        </label>
+        <button type="button" class="btn ghost swap" id="s-swap" aria-label="Swap games">⇄</button>
+        <label>To
+          <select id="s-to"></select>
+        </label>
+        <label>Sensitivity
+          <input id="s-sens" type="number" min="0" step="0.01" value="2">
+        </label>
+        <label>Mouse DPI
+          <input id="s-dpi" type="number" min="1" step="50" value="800">
+        </label>
+      </div>
+      <p class="sens-out" id="s-out" aria-live="polite"></p>
+      <p class="note down" id="s-err" aria-live="polite"></p>
+      <p class="fine">Uses each game's turn rate per mouse count: Deadlock 0.044, CS2 and Apex 0.022, Valorant 0.07, Overwatch 2 0.0066. Zoomed and ADS sensitivity aren't converted.</p>
+    </section>
   </section>
 </main>
 
@@ -123,5 +155,6 @@
 <script src="snapshot.js"></script>
 <script src="home.js"></script>
 <script src="aim.js"></script>
+<script src="sens.js"></script>
 </body>
 </html>

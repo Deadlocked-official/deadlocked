@@ -1,4 +1,4 @@
-name: Weekly refresh of builds, tier list and guides
+name: Weekly refresh of builds, tiers, guides and items
 
 on:
   schedule:
@@ -24,6 +24,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Save last week's data (for "What changed")
+        run: mkdir -p "$RUNNER_TEMP/old" && cp tiers.js builds.js itemdb.js "$RUNNER_TEMP/old/" 2>/dev/null || true
+
       - name: Refresh item list
         run: python tools/make_items.py .
 
@@ -39,6 +42,12 @@ jobs:
       - name: Refresh hero guides (abilities, stats, weapons)
         run: python tools/make_guides.py .
 
+      - name: Rebuild item tier list
+        run: python tools/make_itemdb.py . 21 81
+
+      - name: Work out what changed since last week
+        run: python tools/make_changes.py "$RUNNER_TEMP/old" .
+
       - name: Update sitemap dates
         run: sed -i -E "s#<lastmod>[0-9-]+</lastmod>#<lastmod>$(date -u +%F)</lastmod>#g" sitemap.xml
 
@@ -48,7 +57,7 @@ jobs:
         run: |
           git config user.name "deadlocked-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add items.js builds.js tiers.js guides.js sitemap.xml
+          git add items.js builds.js tiers.js guides.js itemdb.js changes.js sitemap.xml
           if git diff --cached --quiet; then
             echo "Nothing changed this week."
             exit 0

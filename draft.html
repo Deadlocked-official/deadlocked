@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deadlocked Draft Helper: who to pick, who to lane with, what to buy</title>
+<meta name="description" content="Pick your team and the enemy team in Deadlock and get suggestions: best hero to pick, best lane partner, the biggest threats, and items that win against that enemy team.">
+<meta property="og:title" content="Deadlocked Draft Helper">
+<meta property="og:description" content="Pick both teams, get who to play, who to lane with and what to buy.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://deadlocked-official.github.io/draft.html">
+<meta property="og:image" content="https://deadlocked-official.github.io/og.png">
+<link rel="canonical" href="https://deadlocked-official.github.io/draft.html">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0e1513">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sitebar"><div class="wrap">
+  <a class="brand" href="./">Deadlocked</a>
+  <nav aria-label="Site"><a href="./">Home</a><a href="guide.html">Guides</a><a href="builds.html">Builds</a><a href="stats.html">Stats</a><a href="player.html">Players</a><a href="draft.html" aria-current="page">Draft</a><a href="items.html">Items</a><a href="./#drills">Drills</a></nav>
+</div></div>
+<header class="masthead compact">
+  <div class="wrap">
+    <p class="kicker">Draft helper</p>
+    <h1>Draft helper</h1>
+    <p class="lede">Add the heroes on your team and the enemy team. You'll get the best pick, your best lane partner, the biggest threats and what to buy against them.</p>
+  </div>
+</header>
+
+<main class="wrap block draft">
+  <div class="teams">
+    <section class="team ally">
+      <div class="team-head"><h2>Your team</h2><button type="button" class="side on" data-side="ally">Add here</button></div>
+      <p class="note">Click a teammate to make it you (★). Click ★ again to remove it.</p>
+      <ul class="slots" id="d-ally"></ul>
+    </section>
+    <section class="team enemy">
+      <div class="team-head"><h2>Enemy team</h2><button type="button" class="side" data-side="enemy">Add here</button></div>
+      <p class="note">Click a hero to remove it.</p>
+      <ul class="slots" id="d-enemy"></ul>
+    </section>
+  </div>
+  <div class="controls">
+    <label class="grow">Find a hero
+      <input id="d-search" type="search" placeholder="Seven" autocomplete="off">
+    </label>
+    <button type="button" class="btn ghost" id="d-clear">Clear both teams</button>
+  </div>
+  <div class="picker" id="d-picker" role="list"></div>
+  <div id="d-out" aria-live="polite"></div>
+</main>
+
+<footer class="wrap foot">
+  <p>Unofficial fan site. Not made by or affiliated with Valve. Synergy and matchups come from the last two weeks of matches; items against this enemy team are checked live on <a href="https://deadlock-api.com">deadlock-api.com</a>.</p>
+</footer>
+<script src="snapshot.js"></script>
+<script src="items.js"></script>
+<script src="tiers.js"></script>
+<script src="draftpage.js"></script>
+</body>
+</html>

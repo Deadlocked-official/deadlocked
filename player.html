@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deadlocked Player Lookup: your Deadlock rank, heroes and matches</title>
+<meta name="description" content="Look up any Deadlock player by Steam name: rank, most-played heroes, win rate per hero compared with everyone else, and recent matches.">
+<meta property="og:title" content="Deadlocked Player Lookup">
+<meta property="og:description" content="Your Deadlock rank, heroes and recent matches, compared with everyone else.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://deadlocked-official.github.io/player.html">
+<meta property="og:image" content="https://deadlocked-official.github.io/og.png">
+<link rel="canonical" href="https://deadlocked-official.github.io/player.html">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0e1513">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sitebar"><div class="wrap">
+  <a class="brand" href="./">Deadlocked</a>
+  <nav aria-label="Site"><a href="./">Home</a><a href="guide.html">Guides</a><a href="builds.html">Builds</a><a href="stats.html">Stats</a><a href="player.html" aria-current="page">Players</a><a href="draft.html">Draft</a><a href="items.html">Items</a><a href="./#drills">Drills</a></nav>
+</div></div>
+<header class="masthead compact">
+  <div class="wrap">
+    <p class="kicker">Player lookup</p>
+    <h1>Find a player</h1>
+    <p class="lede">Search a Steam name to see that player's rank, heroes and recent matches, compared with everyone else.</p>
+  </div>
+</header>
+
+<main class="wrap block">
+  <form class="controls" id="p-form" role="search">
+    <label class="grow">Steam name, profile link or account ID
+      <input id="p-q" type="search" placeholder="MikaelS" autocomplete="off" required>
+    </label>
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <p class="note" id="p-status"></p>
+  <ul class="p-results" id="p-results"></ul>
+  <article id="p-profile" aria-live="polite"></article>
+</main>
+
+<footer class="wrap foot">
+  <p>Unofficial fan site. Not made by or affiliated with Valve. Player data comes from public match records via <a href="https://deadlock-api.com">deadlock-api.com</a>; players who hide their match history won't show up.</p>
+</footer>
+<script src="snapshot.js"></script>
+<script src="tiers.js"></script>
+<script src="playerpage.js"></script>
+</body>
+</html>

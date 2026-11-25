@@ -45,7 +45,26 @@
   function maxR() { return mode === "shrink" ? r * 1.6 : mode === "close" ? r * 1.8 : r; }
   function margin() { return mode === "head" ? r * 1.2 + 10 : maxR() + 10; }
   function marginY() { return mode === "head" ? r * 2.6 + 10 : maxR() + 10; }
-  function rand(a, b) { return a + Math.random() * (b - a); }
+  // Random numbers: normally Math.random, but target spawns in the daily challenge use a seeded generator
+  // so everyone gets the same targets on the same day.
+  var rng = Math.random, spawnRng = null, daily = null;
+  function rand(a, b) { return a + rng() * (b - a); }
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var DAILY_MODES = ["flick", "multi", "track", "head", "reflex", "shrink", "moving", "precision", "peek", "waves", "jump", "close"];
+  var DAILY_NAMES = { flick: "Flick", multi: "Multi", track: "Tracking", head: "Headshots", reflex: "Reflex", shrink: "Shrinking", moving: "Moving flick", precision: "Precision", peek: "Peek", waves: "Waves", jump: "Jumping", close: "Close tracking" };
+  function today() {
+    var d = new Date(), key = d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") + "-" + String(d.getUTCDate()).padStart(2, "0");
+    var n = Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 86400000) - 20781; // #1 = 25 Nov 2026, the day it launched
+    var mode = DAILY_MODES[((n % 12) + 12) % 12];
+    return { key: key, n: n, mode: mode, seed: n * 2654435761 >>> 0 };
+  }
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -57,6 +76,10 @@
   }
 
   function spawn() {
+    if (spawnRng) { var prev = rng; rng = spawnRng; try { return spawnInner(); } finally { rng = prev; } }
+    return spawnInner();
+  }
+  function spawnInner() {
     var now = performance.now();
     var t = { x: rand(margin(), W - margin()), y: rand(marginY(), H - marginY()), born: now, vx: 0, vy: 0, next: 0, dash: 0 };
     if (mode === "reflex") { t.x = rand(W * 0.3, W * 0.7); t.y = rand(H * 0.3, H * 0.7); }
@@ -104,8 +127,11 @@
     waveLast = now;
   }
 
-  function start() {
+  function start(isDaily) {
     cancelAnimationFrame(raf);
+    daily = isDaily === true ? today() : null;
+    if (daily) { fMode.value = daily.mode; fSize.value = "medium"; fTime.value = "30"; spawnRng = mulberry32(daily.seed); }
+    else spawnRng = null;
     mode = fMode.value; r = SIZES[fSize.value]; duration = +fTime.value * 1000;
     labels(); showBest();
     score = 0; hits = 0; misses = 0; reactions = []; heads = 0; onTime = 0; fx = []; pendingAt = 0;
@@ -148,6 +174,8 @@
     }
     var best = getBest(), isBest = !stopped && (best === null || score > best);
     if (isBest) { setBest(score); showBest(); }
+    if (daily && !stopped) saveDaily(daily, score, lines[0]);
+    spawnRng = null;
     msg.innerHTML = '<p class="big">' + (stopped ? "Stopped" : "Score " + score) + '</p>' +
       lines.map(function (l) { return '<p class="stats">' + l + '</p>'; }).join("") +
       (isBest ? '<p class="new-best">New personal best</p>' : (best !== null && !stopped ? '<p>Your best: ' + best + '</p>' : "")) +
@@ -333,7 +361,41 @@
   window.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && (state === "play" || state === "countdown")) { cancelAnimationFrame(raf); if (state === "countdown") { t0 = performance.now(); } finish(true); }
   });
-  btn.addEventListener("click", start);
+  btn.addEventListener("click", function () { start(false); });
+
+  // Daily challenge card.
+  var dCard = document.getElementById("daily");
+  function dailyKey(d) { return "deadlocked-daily:" + d.key; }
+  function saveDaily(d, s, line) {
+    try {
+      var prev = JSON.parse(localStorage.getItem(dailyKey(d)) || "null");
+      if (!prev || s > prev.score) localStorage.setItem(dailyKey(d), JSON.stringify({ score: s, line: line }));
+    } catch (e) { /* storage blocked */ }
+    renderDaily();
+  }
+  function renderDaily() {
+    if (!dCard) return;
+    var d = today(), mine = null;
+    try { mine = JSON.parse(localStorage.getItem(dailyKey(d)) || "null"); } catch (e) { mine = null; }
+    var share = mine ? "Deadlocked daily #" + d.n + " · " + DAILY_NAMES[d.mode] + " · " + mine.score + " points (" + mine.line + ") deadlocked-official.github.io" : "";
+    dCard.innerHTML = '<div><p class="kicker">Daily challenge #' + d.n + '</p><h3>Today: ' + DAILY_NAMES[d.mode] + '</h3>' +
+      '<p class="note">Same targets for everyone today, medium size, 30 seconds. A new drill every day at midnight UTC.</p></div>' +
+      '<div class="daily-side">' + (mine ? '<p class="daily-score">Your best today: <b>' + mine.score + '</b></p><p class="share" id="d-share">' + share.replace(/[&<>]/g, "") + '</p><button type="button" class="btn ghost" id="d-copy">Copy result</button>' : "") +
+      '<button type="button" class="btn" id="d-play">' + (mine ? "Play again" : "Play today's drill") + '</button><span class="note" id="d-copied" aria-live="polite"></span></div>';
+    document.getElementById("d-play").addEventListener("click", function () { start(true); canvas.scrollIntoView({ behavior: "smooth", block: "center" }); });
+    var copy = document.getElementById("d-copy");
+    if (copy) copy.addEventListener("click", function () {
+      var done = function () { document.getElementById("d-copied").textContent = "Copied"; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(share).then(done, function () { selectShare(); });
+      else selectShare();
+    });
+  }
+  function selectShare() {
+    var el = document.getElementById("d-share"), r2 = document.createRange();
+    r2.selectNodeContents(el); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r2);
+    document.getElementById("d-copied").textContent = "Selected. Press Ctrl+C to copy.";
+  }
+  renderDaily();
   document.querySelectorAll("[data-drill]").forEach(function (el) {
     el.addEventListener("click", function () {
       fMode.value = el.dataset.drill;

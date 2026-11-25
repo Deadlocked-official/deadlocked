@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deadlocked Items: Deadlock item tier list and item stats</title>
+<meta name="description" content="Every Deadlock item graded from high-rank games: win rate against other items of its tier, how often it's bought, when, what it builds into, and which heroes buy it.">
+<meta property="og:title" content="Deadlocked Items">
+<meta property="og:description" content="A Deadlock item tier list from high-rank games, with a page for every item.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://deadlocked-official.github.io/items.html">
+<meta property="og:image" content="https://deadlocked-official.github.io/og.png">
+<link rel="canonical" href="https://deadlocked-official.github.io/items.html">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0e1513">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sitebar"><div class="wrap">
+  <a class="brand" href="./">Deadlocked</a>
+  <nav aria-label="Site"><a href="./">Home</a><a href="guide.html">Guides</a><a href="builds.html">Builds</a><a href="stats.html">Stats</a><a href="player.html">Players</a><a href="draft.html">Draft</a><a href="items.html" aria-current="page">Items</a><a href="./#drills">Drills</a></nav>
+</div></div>
+<header class="masthead compact">
+  <div class="wrap">
+    <p class="kicker">Items · <span id="i-date">Nov 2026</span></p>
+    <h1>Item tier list</h1>
+    <p class="lede">Every item graded from Oracle-and-up games. Click an item for its stats, upgrades and the heroes who buy it.</p>
+  </div>
+</header>
+
+<main class="wrap block">
+  <article id="i-detail" aria-live="polite"></article>
+  <div class="controls">
+    <label>Slot
+      <select id="i-slot">
+        <option value="">All items</option>
+        <option value="weapon">Weapon</option>
+        <option value="vitality">Vitality</option>
+        <option value="spirit">Spirit</option>
+      </select>
+    </label>
+    <label class="grow">Find an item
+      <input id="i-search" type="search" placeholder="Headhunter" autocomplete="off">
+    </label>
+  </div>
+  <div id="i-list"></div>
+  <div class="method">
+    <h2>How items are graded</h2>
+    <div class="cols">
+      <div><h3>Same-tier comparison</h3><p>Each item's win rate is compared with the popular items of its own tier, because expensive items always look strong: the winning team can afford them.</p></div>
+      <div><h3>Late buys count less</h3><p>Items bought much later than usual for their tier lose half a point per minute, since those buys mostly happen in long games that were already won.</p></div>
+      <div><h3>Read it with care</h3><p>Defensive items like Metal Skin get bought when you're already behind, so they grade low even when they're the right call. Grades say what wins on average, not what your game needs.</p></div>
+    </div>
+  </div>
+</main>
+
+<footer class="wrap foot">
+  <p>Unofficial fan site. Not made by or affiliated with Valve. Deadlock and all item art are © Valve Corporation. Data from <a href="https://deadlock-api.com">deadlock-api.com</a>, rebuilt every week.</p>
+</footer>
+<script src="snapshot.js"></script>
+<script src="items.js"></script>
+<script src="itemdb.js"></script>
+<script src="itempage.js"></script>
+</body>
+</html>

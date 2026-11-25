@@ -40,7 +40,7 @@
     else if (i[8] && i[8].length) path = '<span class="path">upgrades <b>' + i[8].map(function (c) { return esc(itemName(c)); }).join(", ") + '</b></span>';
     var sold = i[4] >= 50 && !i[7] ? '<span class="path">· usually sold' + (i[9] ? " around min " + Math.round(i[9]) : " later") + '</span>' : "";
     return '<li class="item rich"' + (note.effect ? ' title="' + esc(note.effect) + '"' : "") + '>' + itemIcon(i[0]) +
-      '<div class="body"><div class="top"><span class="nm">' + esc(it[0]) + '</span>' + badges + '</div>' +
+      '<div class="body"><div class="top"><a class="nm" href="items.html#' + slug(it[0]) + '">' + esc(it[0]) + '</a>' + badges + '</div>' +
       '<p class="why">' + esc(note.why || "") + '</p>' +
       (note.stats && note.stats.length ? '<p class="stats">' + note.stats.map(esc).join(" · ") + '</p>' : "") +
       '<p class="meta">' + it[3].toLocaleString("en-US") + ' souls · ~' + Math.round(i[3]) + ' min ' + path + sold + '</p></div>' +
