@@ -21,17 +21,8 @@
     if (td) td.textContent = " Recalculated " + new Date(window.TIERS.taken + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) + ".";
   }
 
-  var ROLES = [
-    ["Frontliner", "Soaks damage up front and makes space.", ["Abrams", "Victor", "Warden", "Mo & Krill", "Billy", "Rat King†", "Silver†"]],
-    ["Gun carry", "Scales into the team's main gun damage.", ["Haze", "Wraith", "Vindicta", "Vyper†", "Holliday†", "Venator†", "Grey Talon†", "Deadman Danny†", "Mina†"]],
-    ["Spirit carry", "Scales into big ability damage.", ["Seven", "Graves", "Lady Geist", "Violet†"]],
-    ["Support", "Heals, shields and saves teammates.", ["Kelvin", "McGinnis", "Ivy", "Dynamo", "Paige", "Rem", "Nurse Harrow"]],
-    ["Initiator", "Starts fights with a hook, pull or dive.", ["Bebop", "Lash", "Infernus"]],
-    ["Assassin", "Picks off lone targets with burst.", ["Pocket", "Yamato", "Shiv", "Calico†", "Drifter†", "Apollo†", "Mirage†"]],
-    ["Disruptor", "Breaks up fights with control and tricks.", ["Paradox", "Sinclair", "Solomon", "Viscous", "The Doorman†", "Celeste†", "Baba†"]]
-  ];
-  var ALSO = { "Haze": "Assassin", "Vindicta": "Assassin", "Wraith": "Assassin", "Infernus": "Gun carry", "Mo & Krill": "Initiator",
-    "Warden": "Initiator", "Dynamo": "Initiator", "Ivy": "Disruptor", "Shiv": "Frontliner", "Victor": "Gun carry", "Kelvin": "Frontliner" };
+  var ROLES = (window.ROLES_DATA || {}).roles || [];
+  var ALSO = (window.ROLES_DATA || {}).also || {};
 
   function norm(s) { return String(s).toLowerCase().replace(/&/g, "and").replace(/^the\s+/, "").replace(/[^a-z0-9]/g, ""); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }

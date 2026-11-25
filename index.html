@@ -18,7 +18,7 @@
 <body>
 <div class="sitebar"><div class="wrap">
   <a class="brand" href="./">Deadlocked</a>
-  <nav aria-label="Site"><a href="./" aria-current="page">Home</a><a href="stats.html">Stats</a><a href="builds.html">Builds</a><a href="#drills">Drills</a></nav>
+  <nav aria-label="Site"><a href="./" aria-current="page">Home</a><a href="guide.html">Guides</a><a href="builds.html">Builds</a><a href="stats.html">Stats</a><a href="#drills">Drills</a></nav>
 </div></div>
 
 <header class="masthead home-hero">
@@ -38,13 +38,14 @@
     <div class="block-head"><h2>What's here</h2></div>
     <div class="feature-grid">
       <a class="feature" href="stats.html#meta"><b>Meta tracker</b><span>Live win rate, pick rate and KDA for all 44 heroes, by rank and time.</span></a>
-      <a class="feature" href="builds.html"><b>Builds</b><span>A build for every hero, in buying order, made from Oracle-and-up games.</span></a>
+      <a class="feature" href="guide.html"><b>Hero guides</b><span>How to play every hero: strengths, abilities, skill order, power spikes and matchups.</span></a>
+      <a class="feature" href="builds.html"><b>Builds</b><span>A full 19-item build for every hero, with the reason for each item.</span></a>
       <a class="feature" href="stats.html#lookup"><b>Counters and items</b><span>Who your hero struggles against, and what players buy on it.</span></a>
       <a class="feature" href="stats.html#duos"><b>Lane duos</b><span>Which heroes win more together when they share a lane.</span></a>
       <a class="feature" href="stats.html#players"><b>Top players</b><span>Valve's ranked leaderboard for every region, with their main heroes.</span></a>
       <a class="feature" href="stats.html#skill"><b>Skill tiers</b><span>How much practice each hero takes, checked against real matches.</span></a>
       <a class="feature" href="stats.html#roles"><b>Roles</b><span>Frontliners, carries, supports and the rest, for every hero.</span></a>
-      <a class="feature" href="#drills"><b>Aim drills</b><span>Eight short drills with reaction time, accuracy and saved best scores.</span></a>
+      <a class="feature" href="#drills"><b>Aim drills</b><span>Twelve short drills with reaction time, accuracy and saved best scores.</span></a>
     </div>
   </section>
 
@@ -62,6 +63,10 @@
       <button type="button" class="drill" data-drill="shrink"><b>Shrinking</b><span>Targets shrink away. Hit them big for bonus points.</span></button>
       <button type="button" class="drill" data-drill="moving"><b>Moving flick</b><span>Targets drift across the screen. Flick onto them in motion.</span></button>
       <button type="button" class="drill" data-drill="precision"><b>Precision</b><span>Tiny targets, and every miss takes a point away.</span></button>
+      <button type="button" class="drill" data-drill="peek"><b>Peek</b><span>Targets pop out at the edges for under a second, like a corner peek.</span></button>
+      <button type="button" class="drill" data-drill="waves"><b>Waves</b><span>Five targets at once. Clear the wave fast for a bonus.</span></button>
+      <button type="button" class="drill" data-drill="jump"><b>Jumping</b><span>Targets arc through the air like heroes jumping and dashing.</span></button>
+      <button type="button" class="drill" data-drill="close"><b>Close tracking</b><span>A big target strafing wildly up close. Hold the mouse on it.</span></button>
     </div>
     <div class="controls">
       <label>Drill
@@ -74,6 +79,10 @@
           <option value="shrink">Shrinking</option>
           <option value="moving">Moving flick</option>
           <option value="precision">Precision</option>
+          <option value="peek">Peek</option>
+          <option value="waves">Waves</option>
+          <option value="jump">Jumping</option>
+          <option value="close">Close tracking</option>
         </select>
       </label>
       <label>Target size

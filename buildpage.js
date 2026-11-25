@@ -28,7 +28,7 @@
     return '<a role="listitem" class="pick" href="#' + slug(h.name) + '" data-id="' + h.id + '" title="' + esc(h.name) + '">' + img(h.img, "", h.name.replace(/^The /, "")[0]) + '<span>' + esc(h.name) + '</span></a>';
   }).join("");
 
-  var FLAG = { "active": "Active", "anti-heal": "Anti-heal", "anti-CC": "Anti-CC" };
+  var FLAG = { "active": "Active", "anti-heal": "Anti-heal", "anti-CC": "Anti-CC", "sell-late": "Sell for a late item" };
 
   function itemRow(i) {
     var it = ITEMS[i[0]];

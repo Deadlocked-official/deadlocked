@@ -12,7 +12,9 @@
       hAccLabel = document.getElementById("h-acc-label"), hExtraLabel = document.getElementById("h-extra-label");
 
   var SIZES = { large: 34, medium: 24, small: 15 };
-  var SHRINK_MS = 1500;
+  var SHRINK_MS = 1500, PEEK_MS = 750, GRAVITY = 900;
+  var waveLast = 0;
+  function isHold(m) { return m === "track" || m === "close"; }
   var C = { brass: "#c9a45c", red: "#c2473a", dark: "#0a100e", good: "#7fb069", muted: "#95a39b", text: "#e8e3d3" };
 
   var W = 0, H = 0, dpr = 1;
@@ -29,17 +31,18 @@
 
   function labels() {
     var m = fMode.value;
-    hAccLabel.textContent = m === "track" ? "On target" : "Accuracy";
-    hExtraLabel.textContent = m === "track" ? "Hold time" : m === "head" ? "Headshots" : "Avg reaction";
+    hAccLabel.textContent = isHold(m) ? "On target" : "Accuracy";
+    hExtraLabel.textContent = isHold(m) ? "Hold time" : m === "head" ? "Headshots" : "Avg reaction";
   }
 
   // Radius of a target right now (shrinking targets get smaller with age).
   function tr(t, now) {
     if (mode === "precision") return r * 0.55;
     if (mode === "shrink") return r * 1.6 * Math.max(0, 1 - ((now || performance.now()) - t.born) / SHRINK_MS);
+    if (mode === "close") return r * 1.8;
     return r;
   }
-  function maxR() { return mode === "shrink" ? r * 1.6 : r; }
+  function maxR() { return mode === "shrink" ? r * 1.6 : mode === "close" ? r * 1.8 : r; }
   function margin() { return mode === "head" ? r * 1.2 + 10 : maxR() + 10; }
   function marginY() { return mode === "head" ? r * 2.6 + 10 : maxR() + 10; }
   function rand(a, b) { return a + Math.random() * (b - a); }
@@ -57,7 +60,17 @@
     var now = performance.now();
     var t = { x: rand(margin(), W - margin()), y: rand(marginY(), H - marginY()), born: now, vx: 0, vy: 0, next: 0, dash: 0 };
     if (mode === "reflex") { t.x = rand(W * 0.3, W * 0.7); t.y = rand(H * 0.3, H * 0.7); }
-    if (mode === "multi") {
+    if (mode === "peek") {
+      var left = Math.random() < 0.5;
+      t.x = left ? rand(margin(), Math.max(margin() + 1, W * 0.14)) : rand(Math.min(W - margin() - 1, W * 0.86), W - margin());
+      t.y = rand(H * 0.25, H * 0.75);
+    }
+    if (mode === "jump") {
+      t.x = rand(W * 0.15, W * 0.85); t.y = H + r;
+      t.vx = rand(-120, 120); t.vy = -Math.sqrt(2 * GRAVITY * rand(H * 0.35, H * 0.8));
+    }
+    if (mode === "close") { t.x = rand(W * 0.35, W * 0.65); t.y = rand(H * 0.35, H * 0.65); }
+    if (mode === "multi" || mode === "waves") {
       for (var i = 0; i < 20; i++) {
         var clash = targets.some(function (o) { return Math.hypot(o.x - t.x, o.y - t.y) < r * 3; });
         if (!clash) break;
@@ -68,16 +81,27 @@
       var sp = rand(120, 260), ang = rand(0, Math.PI * 2);
       t.vx = Math.cos(ang) * sp; t.vy = Math.sin(ang) * sp;
     }
-    if (mode === "track" || mode === "head") steer(t, now);
+    if (mode === "track" || mode === "head" || mode === "close") steer(t, now);
     return t;
   }
   function steer(t, now) {
+    if (mode === "close") {
+      var s = rand(250, 480), a = rand(0, Math.PI * 2);
+      t.vx = Math.cos(a) * s; t.vy = Math.sin(a) * s * 0.6;
+      t.next = now + rand(150, 450); t.dash = 0;
+      return;
+    }
     var fast = mode === "track";
     var sp = fast ? rand(140, 360) : rand(50, 140);
     t.vx = (Math.random() < 0.5 ? -1 : 1) * sp;
     t.vy = fast ? rand(-90, 90) : 0;
     t.next = now + rand(fast ? 300 : 500, fast ? 1100 : 1400);
     t.dash = fast && Math.random() < 0.25 ? now + 160 : 0;
+  }
+  function spawnWave(now) {
+    targets = [];
+    for (var i = 0; i < 5; i++) targets.push(spawn());
+    waveLast = now;
   }
 
   function start() {
@@ -100,7 +124,9 @@
     msg.hidden = true;
     t0 = now;
     if (mode === "reflex") { pendingAt = now + rand(700, 2000); return; }
-    var n = mode === "multi" ? 3 : 1;
+    if (mode === "peek") { pendingAt = now + rand(300, 700); return; }
+    if (mode === "waves") { spawnWave(now); return; }
+    var n = mode === "multi" || mode === "jump" ? (mode === "jump" ? 2 : 3) : 1;
     for (var i = 0; i < n; i++) targets.push(spawn());
   }
 
@@ -112,7 +138,7 @@
     draw();
     var acc = hits + misses ? Math.round(100 * hits / (hits + misses)) : 0;
     var lines = [];
-    if (mode === "track") {
+    if (isHold(mode)) {
       var played = Math.min(duration, performance.now() - t0) / 1000;
       lines.push("On target " + Math.round(100 * onTime / Math.max(played, 0.001)) + "% · held " + onTime.toFixed(1) + " s");
     } else {
@@ -134,7 +160,7 @@
     var left = state === "play" ? Math.max(0, duration - (now - t0)) : state === "countdown" ? duration : 0;
     hTime.textContent = (left / 1000).toFixed(1);
     hScore.textContent = String(score);
-    if (mode === "track") {
+    if (isHold(mode)) {
       var played = state === "play" ? (now - t0) / 1000 : 0;
       hAcc.textContent = played > 0.2 ? Math.round(100 * onTime / played) + "%" : "–";
       hExtra.textContent = onTime.toFixed(1) + " s";
@@ -153,7 +179,21 @@
       if (now >= countdownEnd) begin(now);
     }
     if (state === "play") {
-      if (mode === "reflex" && pendingAt && now >= pendingAt) { pendingAt = 0; targets = [spawn()]; }
+      if ((mode === "reflex" || mode === "peek") && pendingAt && now >= pendingAt) { pendingAt = 0; targets = [spawn()]; }
+      if (mode === "waves" && pendingAt && now >= pendingAt) { pendingAt = 0; spawnWave(now); }
+      if (mode === "peek" && targets[0] && now - targets[0].born > PEEK_MS) {
+        misses++;
+        fx.push({ x: targets[0].x, y: targets[0].y, t: now, hit: false });
+        targets = []; pendingAt = now + rand(250, 650);
+      }
+      if (mode === "jump") {
+        targets = targets.map(function (t) {
+          t.vy += GRAVITY * dt; t.x += t.vx * dt; t.y += t.vy * dt;
+          if (t.x < margin() || t.x > W - margin()) t.vx = -t.vx;
+          if (t.vy > 0 && t.y > H + r) { misses++; return spawn(); }
+          return t;
+        });
+      }
       if (mode === "shrink") {
         targets = targets.map(function (t) {
           if (now - t.born < SHRINK_MS) return t;
@@ -163,16 +203,18 @@
         });
       }
       targets.forEach(function (t) {
-        if (mode !== "track" && mode !== "head" && mode !== "moving") return;
+        if (mode !== "track" && mode !== "head" && mode !== "moving" && mode !== "close") return;
         if (mode !== "moving" && now > t.next) steer(t, now);
         var boost = t.dash && now < t.dash ? 2.6 : 1;
         t.x += t.vx * boost * dt; t.y += t.vy * dt;
-        if (t.x < margin()) { t.x = margin(); t.vx = Math.abs(t.vx); }
-        if (t.x > W - margin()) { t.x = W - margin(); t.vx = -Math.abs(t.vx); }
-        if (t.y < marginY()) { t.y = marginY(); t.vy = Math.abs(t.vy); }
-        if (t.y > H - marginY()) { t.y = H - marginY(); t.vy = -Math.abs(t.vy); }
+        var x0 = mode === "close" ? W * 0.25 : margin(), x1 = mode === "close" ? W * 0.75 : W - margin();
+        var y0 = mode === "close" ? H * 0.3 : marginY(), y1 = mode === "close" ? H * 0.7 : H - marginY();
+        if (t.x < x0) { t.x = x0; t.vx = Math.abs(t.vx); }
+        if (t.x > x1) { t.x = x1; t.vx = -Math.abs(t.vx); }
+        if (t.y < y0) { t.y = y0; t.vy = Math.abs(t.vy); }
+        if (t.y > y1) { t.y = y1; t.vy = -Math.abs(t.vy); }
       });
-      if (mode === "track" && pointer.down && targets[0] && Math.hypot(pointer.x - targets[0].x, pointer.y - targets[0].y) <= r) {
+      if (isHold(mode) && pointer.down && targets[0] && Math.hypot(pointer.x - targets[0].x, pointer.y - targets[0].y) <= tr(targets[0], now)) {
         onTime += dt;
         score = Math.floor(onTime * 100);
         targets[0].on = true;
@@ -255,7 +297,7 @@
 
   canvas.addEventListener("pointerdown", function (e) {
     var p = pos(e); pointer.x = p.x; pointer.y = p.y; pointer.down = true;
-    if (state !== "play" || mode === "track") return;
+    if (state !== "play" || isHold(mode)) return;
     e.preventDefault();
     var now = performance.now();
     if (mode === "reflex" && pendingAt) {
@@ -264,15 +306,19 @@
       pendingAt = now + rand(700, 2000);
       return;
     }
+    if ((mode === "peek" || mode === "waves") && !targets.length) return;
     var h = hitTest(p.x, p.y, now);
     if (h) {
       var t = targets[h.i];
       hits++;
       if (mode === "head") { score += h.head ? 3 : 1; if (h.head) heads++; }
       else if (mode === "shrink") { score += 1 + Math.round(2 * tr(t, now) / (r * 1.6)); reactions.push(now - t.born); }
+      else if (mode === "waves") { score++; reactions.push(now - waveLast); waveLast = now; }
       else { score++; reactions.push(now - t.born); }
       fx.push({ x: p.x, y: p.y, t: now, hit: true, head: h.head });
       if (mode === "reflex") { targets = []; pendingAt = now + rand(700, 2000); }
+      else if (mode === "peek") { targets = []; pendingAt = now + rand(250, 650); }
+      else if (mode === "waves") { targets.splice(h.i, 1); if (!targets.length) { score += 2; pendingAt = now + 400; } }
       else targets[h.i] = spawn();
     } else {
       misses++;

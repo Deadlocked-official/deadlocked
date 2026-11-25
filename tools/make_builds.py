@@ -22,7 +22,8 @@ Usage: python tools/make_builds.py <data_dir> <site_dir>
 """
 import glob, html, json, os, re, sys
 
-PHASES = [("Lane", [1], 4), ("Core", [2], 4), ("Mid game", [3], 3), ("Late game", [4, 5], 3)]
+PHASES = [("Lane", [1], 4), ("Core", [2], 5), ("Mid game", [3], 5), ("Late game", [4, 5], 5)]
+MAX_HELD = 16  # a full late-game inventory
 NOT_DAMAGE = {"AbilityCooldown", "AbilityDuration", "AbilityCastRange", "AbilityChannelTime", "AbilityCastDelay",
               "AbilityCharges", "AbilityCooldownBetweenCharge", "Radius", "AbilityUnitTargetLimit"}
 
@@ -279,9 +280,13 @@ def main():
 
         used, phases = set(), []
         for pname, tiers, n in PHASES:
-            pool = [r for r in rows if r["tier"] in tiers and r["share"] >= 4 and r["id"] not in used
-                    and (pname != "Lane" or r["t"] <= 12 * 60)]
-            pick = sorted(pool, key=lambda r: -r["score"])[:n]
+            pick = []
+            for min_share in (4, 2):  # widen the pool only if a phase can't be filled
+                pool = [r for r in rows if r["tier"] in tiers and r["share"] >= min_share and r["id"] not in used
+                        and (pname != "Lane" or r["t"] <= 12 * 60)]
+                pick = sorted(pool, key=lambda r: -r["score"])[:n]
+                if len(pick) == n:
+                    break
             pick.sort(key=lambda r: r["t"])
             for r in pick:
                 r["phase"] = pname
@@ -334,12 +339,20 @@ def main():
                 flags.append("anti-heal")
             if "anticc" in t:
                 flags.append("anti-CC")
+            if r["id"] in sell_late:
+                flags.append("sell-late")
             comps = [by_class.get(c) for c in it.get("component_items") or []]
             return [r["id"], round(r["share"], 1), round(r["wr"], 1), round(r["t"] / 60, 1), round(r["sold"]),
                     note, flags, builds_into.get(r["id"]), [c for c in comps if c]]
 
-        # End-of-game inventory: drop upgraded components and items that are usually sold.
+        # End-of-game inventory: drop upgraded components and items that are usually sold,
+        # then if it's still over a full inventory, sell the cheapest, least important items for late ones.
         final = [r for _, pick in phases for r in pick if r["id"] not in builds_into and r["sold"] < 50]
+        final.sort(key=lambda r: (-r["tier"], -r["score"]))
+        sell_late = set()
+        if len(final) > MAX_HELD:
+            sell_late = {r["id"] for r in final[MAX_HELD:]}
+            final = final[:MAX_HELD]
         final.sort(key=lambda r: (-r["tier"], r["t"]))
 
         # Skill order.
