@@ -162,6 +162,17 @@ input[type=search] { width: 100%; }
 .b-first { border-color: var(--brass); color: var(--ink); background: var(--brass); }
 .b-spirit { border-color: #8a5cc9; color: #b48ae6; }
 .lore { max-width: 70ch; color: var(--muted); font-style: italic; }
+.sells { margin: 22px 0; }
+.sell-list { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--rule); counter-reset: s; }
+.sell-list li { counter-increment: s; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 12px; border: 1px solid var(--rule); border-top: 0; background: var(--panel); }
+.sell-list li::before { content: counter(s); font: 900 22px/1 var(--display); color: var(--brass); width: 16px; }
+.sell-from, .sell-to { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sell-from img, .sell-to img, .sell-list .ph { width: 34px; height: 34px; object-fit: contain; border: 1px solid var(--rule); background: var(--panel-2); flex-shrink: 0; }
+.sell-list .slot-weapon { border-color: #b8742e; } .sell-list .slot-vitality { border-color: #5f9a3c; } .sell-list .slot-spirit { border-color: #8a5cc9; }
+.sell-from b { color: var(--bad); font-weight: 600; }
+.sell-from small, .sell-to span { display: block; font: 400 12px var(--mono); color: var(--muted); }
+.sell-to b { display: block; font: 600 14px var(--body); color: var(--text); }
+.sell-arrow { font: 700 20px var(--display); color: var(--brass); }
 .po-title { margin: 18px 0 8px; font: 500 12px/1 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--brass); }
 .po-wrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--panel); }
 .po { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 640px; width: 100%; }

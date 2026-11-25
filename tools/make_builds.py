@@ -296,7 +296,8 @@ def main():
                 continue
             r = {"id": int(s["item_id"]), "tier": int(it.get("item_tier") or 0), "slot": it.get("item_slot_type"),
                  "share": 100 * s["matches"] / games[hid], "wr": 100 * s["wins"] / s["matches"],
-                 "t": s.get("avg_buy_time_s") or 0, "sold": 100 * (s.get("sold") or 0) / s["matches"]}
+                 "t": s.get("avg_buy_time_s") or 0, "sold": 100 * (s.get("sold") or 0) / s["matches"],
+                 "st": s.get("avg_sell_time_s") or 0}
             rows.append(r)
             general[r["id"]] = r
         tier_avg, tier_time = {}, {}
@@ -375,7 +376,7 @@ def main():
                 flags.append("sell-late")
             comps = [by_class.get(c) for c in it.get("component_items") or []]
             return [r["id"], round(r["share"], 1), round(r["wr"], 1), round(r["t"] / 60, 1), round(r["sold"]),
-                    note, flags, builds_into.get(r["id"]), [c for c in comps if c]]
+                    note, flags, builds_into.get(r["id"]), [c for c in comps if c], round(r["st"] / 60, 1) if r["st"] else None]
 
         # End-of-game inventory: drop upgraded components and items that are usually sold,
         # then if it's still over a full inventory, sell the cheapest, least important items for late ones.
@@ -398,6 +399,23 @@ def main():
             mf.sort(key=lambda m: -m["matches"])
             if mf:
                 skill = [[m["ability_id"], round(100 * m["matches"] / total, 1), round(100 * m["wins"] / m["matches"], 1)] for m in mf]
+
+        # What to sell: build items high-rank players often sell (not ones they upgrade), in the order they
+        # sell them, each matched with the late item usually bought around the same time.
+        sells, taken = [], set()
+        sellable = [r for _, pick in phases for r in pick
+                    if r["sold"] >= 25 and r["id"] not in builds_into and r["st"] and r["tier"] <= 3]
+        main_late = [r for _, pick in phases[2:] for r in pick]
+        for r in sorted(sellable, key=lambda r: r["st"]):
+            repl = None
+            for pool in (main_late, extra):  # prefer the main build, then situational items
+                near = [b for b in pool if b["id"] not in taken and b["tier"] > r["tier"] and abs(b["t"] - r["st"]) <= 4 * 60]
+                if near:
+                    repl = min(near, key=lambda b: abs(b["t"] - r["st"]))
+                    break
+            if repl:
+                taken.add(repl["id"])
+            sells.append([r["id"], round(r["sold"]), round(r["st"] / 60, 1), repl["id"] if repl else None])
 
         # Full ability point order.
         points = None
@@ -430,7 +448,7 @@ def main():
         builds[hid] = {"style": style, "why": why, "games": games[hid], "kit": kit, "skill": skill, "points": points,
                        "phases": [{"name": p, "items": [pack(r) for r in pick]} for p, pick in phases],
                        "situational": [pack(r) for r in extra],
-                       "final": [r["id"] for r in final], "counters": counters}
+                       "final": [r["id"] for r in final], "counters": counters, "sells": sells}
 
     data = {"taken": meta["taken"], "days": meta["days"], "min_badge": meta["min_badge"], "builds": builds,
             "names": {k: v for k, v in names.items()}}

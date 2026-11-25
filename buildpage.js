@@ -38,7 +38,7 @@
     var path = "";
     if (i[7]) path = '<span class="path">→ builds into <b>' + esc(itemName(i[7])) + '</b></span>';
     else if (i[8] && i[8].length) path = '<span class="path">upgrades <b>' + i[8].map(function (c) { return esc(itemName(c)); }).join(", ") + '</b></span>';
-    var sold = i[4] >= 50 && !i[7] ? '<span class="path">· usually sold later</span>' : "";
+    var sold = i[4] >= 50 && !i[7] ? '<span class="path">· usually sold' + (i[9] ? " around min " + Math.round(i[9]) : " later") + '</span>' : "";
     return '<li class="item rich"' + (note.effect ? ' title="' + esc(note.effect) + '"' : "") + '>' + itemIcon(i[0]) +
       '<div class="body"><div class="top"><span class="nm">' + esc(it[0]) + '</span>' + badges + '</div>' +
       '<p class="why">' + esc(note.why || "") + '</p>' +
@@ -97,6 +97,15 @@
       b.final.map(function (id) { return '<span class="fi" title="' + esc(itemName(id)) + '">' + itemIcon(id) + '<small>' + esc(itemName(id)) + '</small></span>'; }).join("") + '</div></section>';
   }
 
+  function sellBlock(b, hero) {
+    if (!b.sells || !b.sells.length) return '<section class="sells"><h3>What to sell</h3><p class="note">High-rank ' + esc(hero) + ' players rarely sell anything from this build. They upgrade their early items instead.</p></section>';
+    return '<section class="sells"><h3>What to sell</h3><p class="note">When your slots fill up, sell these first, in this order. Each one is matched with the late item high-rank players usually buy around the same time.</p><ol class="sell-list">' +
+      b.sells.map(function (s) {
+        return '<li><span class="sell-from">' + itemIcon(s[0]) + '<span><b>Sell ' + esc(itemName(s[0])) + '</b><small>around minute ' + Math.round(s[2]) + ' · ' + s[1] + '% of players sell it</small></span></span>' +
+          (s[3] ? '<span class="sell-arrow" aria-hidden="true">→</span><span class="sell-to">' + itemIcon(s[3]) + '<span>to make room for<b>' + esc(itemName(s[3])) + '</b></span></span>' : '<span class="sell-to note">for your next late item</span>') + '</li>';
+      }).join("") + '</ol></section>';
+  }
+
   function show(id) {
     var h = heroes.filter(function (x) { return x.id === id; })[0] || heroes[0];
     if (!h) { out.innerHTML = '<p class="note">No builds available.</p>'; return; }
@@ -115,7 +124,7 @@
         return '<div class="phase"><h3><b>' + (n + 1) + '</b> ' + p.name + '</h3><ol>' + p.items.map(itemRow).join("") + '</ol></div>';
       }).join("") +
       (b.situational.length ? '<div class="phase situational"><h3><b>+</b> Situational</h3><p class="note">Bought less often, but win clearly more than other items of the same tier. Swap them in when they fit the game.</p><ol>' + b.situational.map(itemRow).join("") + '</ol></div>' : "") +
-      '</div>' + finalBlock(b) + counterBlock(b, h.name) +
+      '</div>' + sellBlock(b, h.name) + finalBlock(b) + counterBlock(b, h.name) +
       '<p class="fine"><a href="stats.html#lookup">See all of ' + esc(h.name) + '\'s counters →</a></p>';
     document.title = h.name + " build · Deadlocked";
   }
